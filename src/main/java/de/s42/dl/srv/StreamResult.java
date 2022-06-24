@@ -1,5 +1,5 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
  * 
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
@@ -25,16 +25,25 @@
 //</editor-fold>
 package de.s42.dl.srv;
 
-import de.s42.dl.services.Service;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public interface ServletRemoteService extends Service
+public interface StreamResult
 {
 
-	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable;
+	public int getTtl();
+
+	public String getMimeType();
+
+	public String getEncoding();
+
+	public String getFileName();
+
+	public boolean isInline();
+
+	public long stream(OutputStream out) throws IOException;
 }

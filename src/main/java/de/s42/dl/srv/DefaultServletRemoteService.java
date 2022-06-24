@@ -26,6 +26,8 @@
 package de.s42.dl.srv;
 
 import de.s42.base.collections.MappedList;
+import de.s42.base.conversion.ConversionHelper;
+import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.DLCore;
 import de.s42.dl.DLInstance;
@@ -41,7 +43,9 @@ import de.s42.dl.services.Service;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -126,20 +130,62 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	{
 		log.info("exitService");
 	}
-
-	protected void sendResponse(HttpServletResponse response, Object result, int ttl) throws IOException, DLException
+	
+	protected void setTTL(HttpServletResponse response, int ttl)
 	{
 		assert response != null;
 		assert ttl >= 0;
-
-		response.setContentType("application/json");
-		response.setCharacterEncoding("UTF-8");
-
+		
 		if (ttl > 0) {
 			response.setHeader("Cache-Control", "public, max-age=" + ttl);
 		} else {
 			response.setHeader("Cache-Control", "private");
 		}
+	}
+
+	protected void sendStreamedResponse(HttpServletResponse response, StreamResult result) throws IOException
+	{
+		assert response != null;
+		assert result != null;
+
+		// TTL
+		setTTL(response, result.getTtl());
+
+		// Mime Type
+		response.setContentType(result.getMimeType());
+
+		// Encoding
+		String encoding = result.getEncoding();
+
+		if (encoding != null) {
+			response.setCharacterEncoding(encoding);
+		}
+
+		// Disposition inline/attachment
+		response.setHeader(
+			"Content-Disposition",
+			"" + (result.isInline() ? "inline" : "attachment")
+			+ "; filename=\"" + result.getFileName() + "\"");
+
+		// Send file to client
+		try ( OutputStream out = response.getOutputStream()) {
+			long bytesWritten = result.stream(out);
+			out.flush();
+			out.close();
+			log.info("Sent file", StringHelper.toString(result), bytesWritten);
+		}
+	}
+
+	protected void sendJSONResponse(HttpServletResponse response, Object result, int ttl) throws IOException, DLException
+	{
+		assert response != null;
+		assert ttl >= 0;
+
+		// Send JSON result to client
+		setTTL(response, ttl);
+
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
 
 		if (result != null) {
 			result = JsonWriter.toJSON(core.convertFromJavaObject(result)).toString();
@@ -151,6 +197,21 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				out.flush();
 			}
 		}
+	}
+
+	protected void sendResponse(HttpServletResponse response, Object result, int ttl) throws IOException, DLException
+	{
+		assert response != null;
+		assert ttl >= 0;
+
+		// Send stream results
+		if (result instanceof StreamResult) {
+			sendStreamedResponse(response, (StreamResult) result);
+			return;
+		}
+
+		// Default to sending result as JSON
+		sendJSONResponse(response, result, ttl);
 	}
 
 	protected Object getParameter(HttpServletRequest request, Parameter parameter) throws ServletException
@@ -184,6 +245,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			if (result != null && ((String) result).length() > dlParameter.maxLength()) {
 				throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length(), PARAMETER_TOO_LONG, 400);
 			}
+
+			result = ConversionHelper.convert(result, parameter.getType());
 		}
 
 		if (dlParameter.required() && result == null) {
@@ -232,7 +295,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	}
 
 	@Override
-	public void call(HttpServletRequest request, HttpServletResponse response) throws Exception, RuntimeException
+	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable
 	{
 		assert request != null;
 		assert response != null;
@@ -296,9 +359,17 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					}
 
 					log.debug("Calling", serviceName, methodName);
-
-					sendResponse(response, method.invoke(service, callParams), dlMethod.ttl());
-
+					
+					try {
+						Object result = method.invoke(service, callParams);
+						
+						sendResponse(response, result, dlMethod.ttl());
+					}
+					catch (InvocationTargetException ex) {
+	
+						throw ex.getCause();
+					}
+					
 					return;
 				}
 			}

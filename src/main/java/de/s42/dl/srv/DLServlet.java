@@ -56,7 +56,7 @@ public class DLServlet extends HttpServlet
 
 		try {
 			remoteService.call(request, response);
-		} catch (Error | Exception ex) {
+		} catch (Throwable ex) {
 
 			if (ex instanceof DLServletException) {
 				log.error(((DLServletException)ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
@@ -86,7 +86,10 @@ public class DLServlet extends HttpServlet
 
 					out.print(
 						"{\"error\":\""
-						+ (errorMessage != null ? errorMessage.replaceAll("\"", "\\\\\"").replaceAll("\n", "") : "") + "\""
+						+ (errorMessage != null ? 
+							errorMessage
+								.replaceAll("\n", "")
+								.replaceAll("\\\\", "\\\\\\\\") : "") + "\""
 						+ ", \"errorClass\":\"" + errorClass + "\""
 						+ ", \"errorCode\":\"" + errorCode + "\""
 						+ "}");
