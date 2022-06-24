@@ -41,7 +41,7 @@ public @interface DLMethod
 
 	public String value() default "";
 
-	public String[] permissions() default "";
+	public String[] permissions() default {};
 
 	public boolean userLoggedIn() default false;
 

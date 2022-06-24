@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface DLService
 {
-	public String[] permissions() default "";
+	public String[] permissions() default {};
 
 	public boolean userLoggedIn() default false;
 }

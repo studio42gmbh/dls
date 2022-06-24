@@ -58,7 +58,12 @@ public class DLServlet extends HttpServlet
 			remoteService.call(request, response);
 		} catch (Error | Exception ex) {
 
-			log.error(ex, ex.getMessage());
+			if (ex instanceof DLServletException) {
+				log.error(((DLServletException)ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
+			}
+			else {
+				log.error(ex, ex.getMessage(), request.getRequestURL());
+			}
 
 			// Return unhandled exception as JSON errors
 			if (!response.isCommitted()) {

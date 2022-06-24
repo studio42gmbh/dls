@@ -1,14 +1,28 @@
-/*
- * Copyright Studio 42 GmbH 2020. All rights reserved.
+// <editor-fold desc="The MIT License" defaultstate="collapsed">
+/* 
+ * The MIT License
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
  * 
- * For details to the License read https://www.s42m.de/license
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
+//</editor-fold>
 package de.s42.dl.srv;
 
 import de.s42.base.collections.MappedList;
@@ -53,6 +67,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	public final static String PARAMETER_REQUIRED = "PARAMETER_REQUIRED";
 	public final static String USER_NOT_LOGGED_IN = "USER_NOT_LOGGED_IN";
 	public final static String PERMISSION_MISSING = "PERMISSION_MISSING";
+	public final static String PARAMETER_TOO_LONG = "PARAMETER_TOO_LONG";
 
 	private final static Logger log = LogManager.getLogger(DefaultServletRemoteService.class.getName());
 
@@ -95,7 +110,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 					Service service = exported.toJavaObject(core);
 
-					// dont expose itself
+					// Dont expose itself
 					if (service != this) {
 						services.add(service.getName(), service);
 					}
@@ -165,10 +180,14 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			result = dynamicParameter.resolve(request, dynamicKey);
 		} else {
 			result = request.getParameter(key);
+
+			if (result != null && ((String) result).length() > dlParameter.maxLength()) {
+				throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length(), PARAMETER_TOO_LONG, 400);
+			}
 		}
 
 		if (dlParameter.required() && result == null) {
-			throw new DLServletException("Parameter " + dlParameter.value() + " is required", PARAMETER_REQUIRED, 400);
+			throw new DLServletException("Parameter '" + dlParameter.value() + "' is required", PARAMETER_REQUIRED, 400);
 		}
 
 		return result;
@@ -221,27 +240,26 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		// @todo make service method determination more generic (patterns, subpaths, ...)
 		String pathInfo = request.getPathInfo();
 
-		//print warp info
 		if (pathInfo == null) {
-			throw new DLServletException("pathinfo has to be of structure /<servicename>/<servicemethod>", INVALID_PATH, 400);
+			throw new DLServletException("Pathinfo has to be of structure /<servicename>/<servicemethod>", INVALID_PATH, 400);
 		}
 
 		String[] pathParts = pathInfo.split("/");
 
 		if (pathParts.length != 3) {
-			throw new DLServletException("pathinfo has to be of structure /<servicename>/<servicemethod>", INVALID_PATH, 400);
+			throw new DLServletException("Pathinfo has to be of structure /<servicename>/<servicemethod>", INVALID_PATH, 400);
 		}
 
 		String serviceName = pathParts[1];
 
 		if (serviceName == null || serviceName.isBlank()) {
-			throw new DLServletException("service is required", INVALID_PATH, 400);
+			throw new DLServletException("Service is required", INVALID_PATH, 400);
 		}
 
 		String methodName = pathParts[2];
 
 		if (methodName == null || methodName.isBlank()) {
-			throw new DLServletException("method is required", INVALID_PATH, 400);
+			throw new DLServletException("Method is required", INVALID_PATH, 400);
 		}
 
 		Optional<Service> serviceOpt = services.get(serviceName);
