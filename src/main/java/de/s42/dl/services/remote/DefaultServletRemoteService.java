@@ -54,6 +54,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -141,8 +142,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					}
 				}
 			}
+			
+			
 
 			serviceDescriptorsArray = serviceDescriptors.values().toArray(ServiceDescriptor[]::new);
+			
+			Arrays.sort(serviceDescriptorsArray);
 
 		} catch (DLException ex) {
 			throw new RuntimeException(ex);

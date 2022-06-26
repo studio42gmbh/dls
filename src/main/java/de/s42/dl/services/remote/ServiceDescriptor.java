@@ -31,13 +31,14 @@ import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class ServiceDescriptor
+public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 {
 
 	protected final Service service;
@@ -68,6 +69,8 @@ public class ServiceDescriptor
 		}
 
 		methods = meths.toArray(MethodDescriptor[]::new);
+
+		Arrays.sort(methods);
 	}
 
 	public Service getService()
@@ -89,7 +92,7 @@ public class ServiceDescriptor
 	{
 		return methods;
 	}
-	
+
 	public String getDescription()
 	{
 		// @todo add l10n description
@@ -100,7 +103,7 @@ public class ServiceDescriptor
 	{
 		return dlService.userLoggedIn();
 	}
-	
+
 	public String[] getPermissions()
 	{
 		return dlService.permissions();
@@ -109,5 +112,15 @@ public class ServiceDescriptor
 	public DLService getDlService()
 	{
 		return dlService;
+	}
+
+	@Override
+	public int compareTo(ServiceDescriptor o)
+	{
+		if (o == null) {
+			return -1;
+		}
+
+		return getName().compareTo(o.getName());
 	}
 }

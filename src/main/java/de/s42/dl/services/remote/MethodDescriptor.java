@@ -36,85 +36,85 @@ import java.util.List;
  *
  * @author Benjamin Schiller
  */
-public class MethodDescriptor
+public class MethodDescriptor implements Comparable<MethodDescriptor>
 {
-
+	
 	protected final Method method;
-
+	
 	protected final DLMethod dlMethod;
-
+	
 	protected final String name;
-
+	
 	protected final ParameterDescriptor[] parameters;
-
+	
 	protected final ParameterDescriptor[] staticParameters;
-
+	
 	public MethodDescriptor(Method method)
 	{
 		assert method != null;
-
+		
 		this.method = method;
-
+		
 		dlMethod = method.getAnnotation(DLMethod.class);
-
+		
 		if (dlMethod == null) {
 			throw new RuntimeException("Method has to contain annotation DLMethod");
 		}
-
+		
 		name = !dlMethod.value().isBlank() ? dlMethod.value() : method.getName();
-
+		
 		List<ParameterDescriptor> params = new ArrayList<>();
 		List<ParameterDescriptor> staticParams = new ArrayList<>();
-
+		
 		for (Parameter parameter : method.getParameters()) {
-
+			
 			if (parameter.getAnnotation(DLParameter.class) == null) {
 				throw new RuntimeException("All parameters in method " + method + " have to contain annotation DLParameter " + parameter);
 			}
-
+			
 			ParameterDescriptor paramDesc = new ParameterDescriptor(parameter);
-
+			
 			params.add(paramDesc);
-
+			
 			if (paramDesc.isStatic()) {
 				staticParams.add(paramDesc);
 			}
 		}
-
+		
 		parameters = params.toArray(ParameterDescriptor[]::new);
 		staticParameters = staticParams.toArray(ParameterDescriptor[]::new);
 	}
-
+	
 	public Method getMethod()
 	{
 		return method;
 	}
-
+	
 	public String getName()
 	{
 		return name;
 	}
-
+	
 	public boolean isUserLoggedIn()
 	{
 		return dlMethod.userLoggedIn();
 	}
-
+	
 	public String[] getPermissions()
 	{
 		return dlMethod.permissions();
 	}
-
+	
 	public ParameterDescriptor[] getParameters()
 	{
 		return parameters;
 	}
-
+	
 	public ParameterDescriptor[] getStaticParameters()
 	{
 		return staticParameters;
 	}
-
+	
 	public boolean hasParameterOfType(Class type)
 	{
 		for (ParameterDescriptor parameter : getStaticParameters()) {
@@ -122,7 +122,7 @@ public class MethodDescriptor
 				return true;
 			}
 		}
-
+		
 		return false;
 	}
 	
@@ -130,18 +130,18 @@ public class MethodDescriptor
 	{
 		return method.getReturnType();
 	}
-
+	
 	public String getDescription()
 	{
 		// @todo add l10n description
 		return "";
 	}
-
+	
 	public boolean isNeedsMultiPartUpload()
 	{
 		return hasParameterOfType(FileRef.class);
 	}
-
+	
 	public DLMethod getDlMethod()
 	{
 		return dlMethod;
@@ -151,4 +151,14 @@ public class MethodDescriptor
 	{
 		return dlMethod.ttl();
 	}
+	
+	@Override
+	public int compareTo(MethodDescriptor o)
+	{
+		if (o == null) {
+			return -1;
+		}
+		
+		return getName().compareTo(o.getName());
+	}	
 }
