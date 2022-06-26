@@ -55,7 +55,7 @@ public class FileResult implements StreamResult
 	{
 		assert file != null;
 		assert ttl >= 0;
-		
+
 		if (!Files.isRegularFile(file)) {
 			throw new IOException("File '" + file + "' does not exist");
 		}
@@ -88,7 +88,7 @@ public class FileResult implements StreamResult
 	{
 		assert file != null;
 		assert ttl >= 0;
-		
+
 		if (!Files.isRegularFile(file)) {
 			throw new IOException("File '" + file + "' does not exist");
 		}
@@ -109,6 +109,39 @@ public class FileResult implements StreamResult
 		}
 
 		mimeType = FilesHelper.getMimeType(file);
+
+		if (mimeType.startsWith("text")) {
+			this.encoding = "UTF-8";
+		} else {
+			this.encoding = null;
+		}
+	}
+
+	public FileResult(Path file, int ttl, boolean inline, String fileName, String mimeType) throws IOException
+	{
+		assert file != null;
+		assert ttl >= 0;
+
+		if (!Files.isRegularFile(file)) {
+			throw new IOException("File '" + file + "' does not exist");
+		}
+
+		this.file = file;
+		this.ttl = ttl;
+		this.inline = inline;
+
+		this.fileName = fileName;
+
+		// File ending
+		int lastDot = fileName.lastIndexOf(".");
+
+		if (lastDot > -1) {
+			fileEnding = fileName.substring(lastDot + 1).toLowerCase();
+		} else {
+			fileEnding = "";
+		}
+
+		this.mimeType = mimeType;
 
 		if (mimeType.startsWith("text")) {
 			this.encoding = "UTF-8";

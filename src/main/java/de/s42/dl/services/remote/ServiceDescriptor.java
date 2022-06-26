@@ -1,0 +1,113 @@
+// <editor-fold desc="The MIT License" defaultstate="collapsed">
+/*
+ * The MIT License
+ * 
+ * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+//</editor-fold>
+package de.s42.dl.services.remote;
+
+import de.s42.base.strings.StringHelper;
+import de.s42.dl.services.DLMethod;
+import de.s42.dl.services.DLService;
+import de.s42.dl.services.Service;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Benjamin Schiller
+ */
+public class ServiceDescriptor
+{
+
+	protected final Service service;
+
+	protected final DLService dlService;
+
+	protected final String name;
+	protected final String className;
+
+	protected final MethodDescriptor[] methods;
+
+	public ServiceDescriptor(Service service)
+	{
+		this.service = service;
+
+		dlService = service.getClass().getAnnotation(DLService.class);
+
+		name = service.getName();
+		className = service.getClass().getSimpleName() + StringHelper.upperCaseFirst(name);
+
+		List<MethodDescriptor> meths = new ArrayList<>();
+
+		for (Method method : service.getClass().getMethods()) {
+
+			if (method.getAnnotation(DLMethod.class) != null) {
+				meths.add(new MethodDescriptor(method));
+			}
+		}
+
+		methods = meths.toArray(MethodDescriptor[]::new);
+	}
+
+	public Service getService()
+	{
+		return service;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public String getClassName()
+	{
+		return className;
+	}
+
+	public MethodDescriptor[] getMethods()
+	{
+		return methods;
+	}
+	
+	public String getDescription()
+	{
+		// @todo add l10n description
+		return "";
+	}
+
+	public boolean isUserLoggedIn()
+	{
+		return dlService.userLoggedIn();
+	}
+	
+	public String[] getPermissions()
+	{
+		return dlService.permissions();
+	}
+
+	public DLService getDlService()
+	{
+		return dlService;
+	}
+}

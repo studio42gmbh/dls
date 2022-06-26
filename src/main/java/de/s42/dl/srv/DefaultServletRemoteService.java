@@ -27,6 +27,7 @@ package de.s42.dl.srv;
 
 import de.s42.base.collections.MappedList;
 import de.s42.base.conversion.ConversionHelper;
+import de.s42.base.files.FilesHelper;
 import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.DLCore;
@@ -40,9 +41,13 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
+import de.s42.dl.services.remote.ServiceDescriptor;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -53,9 +58,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+import org.json.JSONObject;
 
 /**
  *
@@ -88,7 +96,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	protected final MappedList<String, Service> services = new MappedList<>();
 
 	@AttributeDL(ignore = true)
+	protected final MappedList<String, ServiceDescriptor> serviceDescriptors = new MappedList<>();
+
+	@AttributeDL(ignore = true)
 	protected final Map<String, DynamicServletParameter> dynamicParameters = new HashMap<>();
+
+	protected ServiceDescriptor[] serviceDescriptorsArray;
 
 	@Override
 	public void addChild(String name, DynamicServletParameter child)
@@ -116,10 +129,20 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 					// Dont expose itself
 					if (service != this) {
-						services.add(service.getName(), service);
+
+						DLService dlService = service.getClass().getAnnotation(DLService.class);
+
+						// Just add classes with annotation DLService
+						if (dlService != null) {
+							services.add(service.getName(), service);
+							serviceDescriptors.add(service.getName(), new ServiceDescriptor(service));
+						}
 					}
 				}
 			}
+
+			serviceDescriptorsArray = serviceDescriptors.values().toArray(ServiceDescriptor[]::new);
+
 		} catch (DLException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -130,12 +153,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	{
 		log.info("exitService");
 	}
-	
+
 	protected void setTTL(HttpServletResponse response, int ttl)
 	{
 		assert response != null;
 		assert ttl >= 0;
-		
+
 		if (ttl > 0) {
 			response.setHeader("Cache-Control", "public, max-age=" + ttl);
 		} else {
@@ -214,7 +237,121 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		sendJSONResponse(response, result, ttl);
 	}
 
-	protected Object getParameter(HttpServletRequest request, Parameter parameter) throws ServletException
+	protected FileRef getRequestParameterFileRef(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
+	{
+		if (request.getContentType() == null || !request.getContentType().startsWith("multipart/form-data")) {
+			throw new DLServletException("File parameter '" + dlParameter.value() + "' needs to be posted as 'multipart/form-data'", PARAMETER_REQUIRED, 400);
+		}
+		
+		Part p = request.getPart(dlParameter.value());
+		if (p != null) {
+
+			if (p.getSize() > dlParameter.maxLength()) {
+				throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + p.getSize(), PARAMETER_TOO_LONG, 400);
+			}
+
+			try ( InputStream in = p.getInputStream()) {
+
+				byte[] data = new byte[(int) p.getSize()];
+				in.read(data);
+				// @todo Optimize temp files to support FileService during upload of files?
+				// File tempFile = File.createTempFile("warp", p.getSubmittedFileName());
+				File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
+				// log.debug("Temp Folder: " + folder.getAbsolutePath());
+				File tempFile = File.createTempFile("dl-", "", folder);
+				log.debug("Temp File: " + tempFile.getAbsolutePath());
+
+				FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
+
+				Map<String, Object> attributes = new HashMap();
+
+				return new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes);
+			}
+		}
+
+		return null;
+	}
+
+	protected <DataType> DataType getRequestParameter(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
+	{
+		String key = dlParameter.value();
+
+		if (request.getContentType() != null
+			&& (request.getContentType().startsWith("application/json")
+			//see https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS -> Simple Request avoids Preflight
+			|| (request.getContentType().startsWith("text/plain")))) {
+
+			JSONObject requestAsJSON = (JSONObject) request.getAttribute("_jsonParameters");
+
+			if (requestAsJSON == null) {
+
+				StringBuilder jb = new StringBuilder();
+				String line;
+
+				BufferedReader reader = request.getReader();
+				while ((line = reader.readLine()) != null) {
+					jb.append(line);
+				}
+
+				requestAsJSON = new JSONObject(jb.toString());
+
+				request.setAttribute("_jsonParameters", requestAsJSON);
+			}
+
+			if (requestAsJSON.has(key) && !requestAsJSON.isNull(key)) {
+				return (DataType) requestAsJSON.get(key).toString();
+			}
+
+			return null;
+		} else if (request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")) {
+
+			Object requestAsPart = request.getAttribute("_partParameter_" + key);
+
+			if (requestAsPart == null) {
+
+				//@todo WARP-110 Handle to big uploads properly - currently nothing is returned to client
+				Part p = request.getPart(key);
+				if (p != null) {
+
+					if (p.getSubmittedFileName() != null) {
+
+						try ( InputStream in = p.getInputStream()) {
+							byte[] data = new byte[(int) p.getSize()];
+							in.read(data);
+							//@todo Optimize temp files to support FileService during upload of files?
+							//File tempFile = File.createTempFile("warp", p.getSubmittedFileName());
+							File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
+							//log.debug("Temp Folder: " + folder.getAbsolutePath());
+							File tempFile = File.createTempFile("dl-", "", folder);
+							log.debug("Temp File: " + tempFile.getAbsolutePath());
+
+							FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
+
+							Map<String, Object> attributes = new HashMap();
+							FileRef ref = new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes);
+
+							requestAsPart = ref;
+						}
+					} else {
+
+						try ( InputStream in = p.getInputStream()) {
+							byte[] data = new byte[(int) p.getSize()];
+							in.read(data);
+							requestAsPart = new String(data, "UTF-8");
+						}
+					}
+
+					request.setAttribute("_partParameter_" + key, requestAsPart);
+				}
+			}
+
+			return (DataType) requestAsPart;
+		}
+
+		return (DataType) request.getParameter(key);
+	}
+
+	protected Object getParameter(HttpServletRequest request, Parameter parameter) throws ServletException, IOException
 	{
 		assert request != null;
 		assert parameter != null;
@@ -240,10 +377,15 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 			result = dynamicParameter.resolve(request, dynamicKey);
 		} else {
-			result = request.getParameter(key);
 
-			if (result != null && ((String) result).length() > dlParameter.maxLength()) {
-				throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length(), PARAMETER_TOO_LONG, 400);
+			if (FileRef.class.isAssignableFrom(parameter.getType())) {
+				result = getRequestParameterFileRef(request, dlParameter);
+			} else {
+				result = getRequestParameter(request, dlParameter);
+
+				if (result != null && ((String) result).length() > dlParameter.maxLength()) {
+					throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length(), PARAMETER_TOO_LONG, 400);
+				}
 			}
 
 			result = ConversionHelper.convert(result, parameter.getType());
@@ -259,6 +401,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	protected void validatePermissions(HttpServletRequest request, DLService service, DLMethod method) throws Exception
 	{
 		assert request != null;
+		assert service != null;
+		assert method != null;
 
 		if (!isValidatePermissions() || (getPermissionService() == null)) {
 			return;
@@ -267,25 +411,19 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		boolean userLoggedIn = false;
 		Set<String> permissions = new HashSet<>();
 
-		if (service != null) {
+		userLoggedIn |= service.userLoggedIn();
 
-			userLoggedIn |= service.userLoggedIn();
-
-			for (String permission : service.permissions()) {
-				if (!permission.isBlank()) {
-					permissions.add(permission);
-				}
+		for (String permission : service.permissions()) {
+			if (!permission.isBlank()) {
+				permissions.add(permission);
 			}
 		}
 
-		if (method != null) {
+		userLoggedIn |= method.userLoggedIn();
 
-			userLoggedIn |= method.userLoggedIn();
-
-			for (String permission : method.permissions()) {
-				if (!permission.isBlank()) {
-					permissions.add(permission);
-				}
+		for (String permission : method.permissions()) {
+			if (!permission.isBlank()) {
+				permissions.add(permission);
 			}
 		}
 
@@ -359,17 +497,16 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					}
 
 					log.debug("Calling", serviceName, methodName);
-					
+
 					try {
 						Object result = method.invoke(service, callParams);
-						
+
 						sendResponse(response, result, dlMethod.ttl());
-					}
-					catch (InvocationTargetException ex) {
-	
+					} catch (InvocationTargetException ex) {
+
 						throw ex.getCause();
 					}
-					
+
 					return;
 				}
 			}
@@ -406,5 +543,15 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	public void setPermissionService(PermissionService permissionService)
 	{
 		this.permissionService = permissionService;
+	}
+
+	public Set<Service> getServices()
+	{
+		return services.values();
+	}
+
+	public ServiceDescriptor[] getServiceDescriptors()
+	{
+		return serviceDescriptorsArray;
 	}
 }

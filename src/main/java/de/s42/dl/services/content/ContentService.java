@@ -1,5 +1,5 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
  * 
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
@@ -23,19 +23,17 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-module de.sft.dls
+package de.s42.dl.services.content;
+
+import de.s42.dl.srv.*;
+import de.s42.dl.services.Service;
+
+/**
+ *
+ * @author Benjamin Schiller
+ */
+public interface ContentService extends Service
 {
-	requires java.desktop;
-	requires java.naming;
-	requires javaee.web.api;
-	requires de.sft.dl;
-	requires de.sft.dlt;
-	requires de.sft.log;
-	requires de.sft.base;
-	
-	exports de.s42.dl.services; 
-	exports de.s42.dl.services.content; 
-	exports de.s42.dl.services.content.dlt; 
-	exports de.s42.dl.services.remote; 
-	exports de.s42.dl.srv;
+
+	public StreamResult stream(String id) throws Exception;
 }
