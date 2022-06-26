@@ -23,17 +23,25 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.srv;
+package de.s42.dl.services.remote.parameters;
 
+import de.s42.dl.services.remote.DynamicServletParameter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public interface DynamicServletParameter
+public class ResponseDynamicParameter implements DynamicServletParameter
 {
 
-	Object resolve(HttpServletRequest request, String key) throws ServletException;
+	@Override
+	public synchronized Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	{
+		assert response != null;
+
+		return response;
+	}
 }

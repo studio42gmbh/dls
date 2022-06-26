@@ -27,7 +27,6 @@ package de.s42.dl.services.remote;
 
 import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
-import de.s42.dl.srv.FileRef;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;

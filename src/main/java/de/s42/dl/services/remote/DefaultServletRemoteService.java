@@ -23,8 +23,9 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.srv;
+package de.s42.dl.services.remote;
 
+import de.s42.dl.services.permission.PermissionService;
 import de.s42.base.collections.MappedList;
 import de.s42.base.conversion.ConversionHelper;
 import de.s42.base.files.FilesHelper;
@@ -41,7 +42,7 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
-import de.s42.dl.services.remote.ServiceDescriptor;
+import de.s42.dl.srv.DLServletException;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.BufferedReader;
@@ -242,7 +243,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		if (request.getContentType() == null || !request.getContentType().startsWith("multipart/form-data")) {
 			throw new DLServletException("File parameter '" + dlParameter.value() + "' needs to be posted as 'multipart/form-data'", PARAMETER_REQUIRED, 400);
 		}
-		
+
 		Part p = request.getPart(dlParameter.value());
 		if (p != null) {
 
@@ -351,7 +352,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		return (DataType) request.getParameter(key);
 	}
 
-	protected Object getParameter(HttpServletRequest request, Parameter parameter) throws ServletException, IOException
+	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, Parameter parameter) throws ServletException, IOException
 	{
 		assert request != null;
 		assert parameter != null;
@@ -375,7 +376,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				return null;
 			}
 
-			result = dynamicParameter.resolve(request, dynamicKey);
+			result = dynamicParameter.resolve(request, response, dynamicKey);
 		} else {
 
 			if (FileRef.class.isAssignableFrom(parameter.getType())) {
@@ -493,7 +494,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 						Parameter parameter = parameters[i];
 
-						callParams[i] = getParameter(request, parameter);
+						callParams[i] = getParameter(request, response, parameter);
 					}
 
 					log.debug("Calling", serviceName, methodName);

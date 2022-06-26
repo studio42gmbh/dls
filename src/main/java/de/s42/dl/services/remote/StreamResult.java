@@ -23,7 +23,7 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.srv;
+package de.s42.dl.services.remote;
 
 import java.io.IOException;
 import java.io.OutputStream;

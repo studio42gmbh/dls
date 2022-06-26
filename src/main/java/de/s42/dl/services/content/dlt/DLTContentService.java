@@ -31,7 +31,7 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.content.ContentService;
-import de.s42.dl.srv.StreamResult;
+import de.s42.dl.services.remote.StreamResult;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.srv;
 
+import de.s42.dl.services.remote.StreamResult;
 import de.s42.base.files.FilesHelper;
 import java.io.IOException;
 import java.io.OutputStream;

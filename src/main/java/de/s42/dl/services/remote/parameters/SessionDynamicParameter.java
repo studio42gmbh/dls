@@ -1,5 +1,5 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
  * 
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
@@ -23,9 +23,10 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.srv;
+package de.s42.dl.services.remote.parameters;
 
-import de.s42.dl.services.Service;
+import de.s42.dl.services.remote.DynamicServletParameter;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -33,8 +34,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Benjamin Schiller
  */
-public interface ServletRemoteService extends Service
+public class SessionDynamicParameter implements DynamicServletParameter
 {
 
-	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable;
+	@Override
+	public synchronized Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	{
+		assert request != null;
+		
+		return request.getSession();
+	}
 }

@@ -27,7 +27,7 @@ package de.s42.dl.services.content.dlt;
 
 import de.s42.base.resources.ResourceHelper;
 import de.s42.dl.srv.DLServletException;
-import de.s42.dl.srv.StreamResult;
+import de.s42.dl.services.remote.StreamResult;
 import de.s42.dlt.DLT;
 import de.s42.dlt.parser.DefaultTemplateContext;
 import java.io.IOException;

@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.srv;
 
+import de.s42.dl.services.remote.ServletRemoteService;
 import de.s42.base.collections.MappedList;
 import de.s42.dl.services.Service;
 import de.s42.log.LogManager;

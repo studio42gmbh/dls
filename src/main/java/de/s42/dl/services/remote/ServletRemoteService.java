@@ -1,5 +1,5 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/*
+/* 
  * The MIT License
  * 
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
@@ -23,18 +23,18 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.srv;
+package de.s42.dl.services.remote;
 
 import de.s42.dl.services.Service;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public interface PermissionService extends Service
+public interface ServletRemoteService extends Service
 {
 
-	public void validate(HttpServletRequest request, boolean userLoggedIn, Set<String> permissions) throws Exception;
+	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable;
 }
