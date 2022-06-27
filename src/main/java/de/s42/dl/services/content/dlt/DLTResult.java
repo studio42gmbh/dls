@@ -26,6 +26,7 @@
 package de.s42.dl.services.content.dlt;
 
 import de.s42.base.resources.ResourceHelper;
+import de.s42.dl.services.content.ContentNotFound;
 import de.s42.dl.srv.DLServletException;
 import de.s42.dl.services.remote.StreamResult;
 import de.s42.dlt.DLT;
@@ -33,6 +34,7 @@ import de.s42.dlt.parser.DefaultTemplateContext;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  *
@@ -42,9 +44,7 @@ public class DLTResult implements StreamResult
 {
 
 	protected final String resourceName;
-
 	protected final byte[] evaluated;
-
 	protected final int ttl;
 	protected final boolean inline;
 	protected final String encoding;
@@ -63,17 +63,18 @@ public class DLTResult implements StreamResult
 
 		this.resourceName = resourceName;
 
-		if (!ResourceHelper.hasResource(resourceName)) {
-			throw new DLServletException("Resource '" + resourceName + "' does not exist", "RESOURCE_NOT_FOUND", 404);
+		Optional<String> optResource;
+		try {
+			optResource = ResourceHelper.getResourceAsString(resourceName);
+		} catch (IOException ex) {
+			throw new ContentNotFound("Resource '" + resourceName + "' can not be read");
 		}
 
-		String dlt;
-		try {
-			dlt = ResourceHelper.getResourceAsString(resourceName).orElseThrow();
-		} catch (IOException ex) {
-			// This should not happen
-			throw new DLServletException("Resource '" + resourceName + "' does not exist", "RESOURCE_NOT_FOUND", 404);
+		if (optResource.isEmpty()) {
+			throw new ContentNotFound("Resource '" + resourceName + "' does not exist");
 		}
+
+		String resource = optResource.orElseThrow();
 
 		DefaultTemplateContext context = new DefaultTemplateContext();
 
@@ -83,9 +84,9 @@ public class DLTResult implements StreamResult
 
 		String evaluatedString;
 		try {
-			evaluatedString = DLT.evaluate(dlt, context);
+			evaluatedString = DLT.evaluate(resource, context);
 		} catch (Exception ex) {
-			throw new DLServletException("Error evaluating template '" + resourceName + "' - " + ex.getMessage(), ex, "ERROR_PARSING_TEMPLATE", 500);
+			throw new InvalidTemplate("Error evaluating template '" + resourceName + "' - " + ex.getMessage(), ex);
 		}
 
 		evaluated = evaluatedString.getBytes();

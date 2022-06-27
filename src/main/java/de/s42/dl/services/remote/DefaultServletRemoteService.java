@@ -42,7 +42,6 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
-import de.s42.dl.srv.DLServletException;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.BufferedReader;
@@ -74,14 +73,6 @@ import org.json.JSONObject;
 // @todo optimize service method caching (lookup and permissions)
 public class DefaultServletRemoteService extends AbstractService implements ServletRemoteService, DLContainer<DynamicServletParameter>
 {
-
-	public final static String INVALID_PATH = "INVALID_PATH";
-	public final static String UNKNOWN_SERVICE = "UNKNOWN_SERVICE";
-	public final static String UNKNOWN_METHOD = "UNKNOWN_METHOD";
-	public final static String PARAMETER_REQUIRED = "PARAMETER_REQUIRED";
-	public final static String USER_NOT_LOGGED_IN = "USER_NOT_LOGGED_IN";
-	public final static String PERMISSION_MISSING = "PERMISSION_MISSING";
-	public final static String PARAMETER_TOO_LONG = "PARAMETER_TOO_LONG";
 
 	private final static Logger log = LogManager.getLogger(DefaultServletRemoteService.class.getName());
 
@@ -142,11 +133,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					}
 				}
 			}
-			
-			
 
 			serviceDescriptorsArray = serviceDescriptors.values().toArray(ServiceDescriptor[]::new);
-			
+
 			Arrays.sort(serviceDescriptorsArray);
 
 		} catch (DLException ex) {
@@ -246,14 +235,14 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	protected FileRef getRequestParameterFileRef(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
 	{
 		if (request.getContentType() == null || !request.getContentType().startsWith("multipart/form-data")) {
-			throw new DLServletException("File parameter '" + dlParameter.value() + "' needs to be posted as 'multipart/form-data'", PARAMETER_REQUIRED, 400);
+			throw new ParameterRequired("File parameter '" + dlParameter.value() + "' needs to be posted as 'multipart/form-data'");
 		}
 
 		Part p = request.getPart(dlParameter.value());
 		if (p != null) {
 
 			if (p.getSize() > dlParameter.maxLength()) {
-				throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + p.getSize(), PARAMETER_TOO_LONG, 400);
+				throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + p.getSize());
 			}
 
 			try ( InputStream in = p.getInputStream()) {
@@ -365,7 +354,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		DLParameter dlParameter = parameter.getAnnotation(DLParameter.class);
 
 		if (dlParameter == null) {
-			throw new DLServletException("Parameter is required to have a DLParameter annotation", PARAMETER_REQUIRED, 400);
+			throw new ParameterRequired("Parameter is required to have a DLParameter annotation");
 		}
 
 		String key = dlParameter.value();
@@ -390,7 +379,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				result = getRequestParameter(request, dlParameter);
 
 				if (result != null && ((String) result).length() > dlParameter.maxLength()) {
-					throw new DLServletException("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length(), PARAMETER_TOO_LONG, 400);
+					throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length());
 				}
 			}
 
@@ -398,7 +387,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 
 		if (dlParameter.required() && result == null) {
-			throw new DLServletException("Parameter '" + dlParameter.value() + "' is required", PARAMETER_REQUIRED, 400);
+			throw new ParameterRequired("Parameter '" + dlParameter.value() + "' is required");
 		}
 
 		return result;
@@ -448,31 +437,31 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		String pathInfo = request.getPathInfo();
 
 		if (pathInfo == null) {
-			throw new DLServletException("Pathinfo has to be of structure /<servicename>/<servicemethod>", INVALID_PATH, 400);
+			throw new InvalidPath("Pathinfo has to be of structure /<servicename>/<servicemethod>");
 		}
 
 		String[] pathParts = pathInfo.split("/");
 
 		if (pathParts.length != 3) {
-			throw new DLServletException("Pathinfo has to be of structure /<servicename>/<servicemethod>", INVALID_PATH, 400);
+			throw new InvalidPath("Pathinfo has to be of structure /<servicename>/<servicemethod>");
 		}
 
 		String serviceName = pathParts[1];
 
 		if (serviceName == null || serviceName.isBlank()) {
-			throw new DLServletException("Service is required", INVALID_PATH, 400);
+			throw new InvalidPath("Service is required");
 		}
 
 		String methodName = pathParts[2];
 
 		if (methodName == null || methodName.isBlank()) {
-			throw new DLServletException("Method is required", INVALID_PATH, 400);
+			throw new InvalidPath("Method is required");
 		}
 
 		Optional<Service> serviceOpt = services.get(serviceName);
 
 		if (serviceOpt.isEmpty()) {
-			throw new DLServletException("Service " + serviceName + " is not mapped", UNKNOWN_SERVICE, 404);
+			throw new UnknownService("Service " + serviceName + " is not mapped");
 		}
 
 		Service service = serviceOpt.orElseThrow();
@@ -518,7 +507,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			}
 		}
 
-		throw new DLServletException("Method " + methodName + " is not mapped", UNKNOWN_METHOD, 404);
+		throw new UnknownMethod("Method " + methodName + " is not mapped");
 	}
 
 	public boolean isValidatePermissions()
