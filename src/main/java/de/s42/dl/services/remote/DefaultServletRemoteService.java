@@ -190,7 +190,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			long bytesWritten = result.stream(out);
 			out.flush();
 			out.close();
-			log.info("Sent file", StringHelper.toString(result), bytesWritten);
+			log.info("Sent streamed response", StringHelper.toString(result), bytesWritten);
 		}
 	}
 
@@ -361,17 +361,25 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		Object result;
 
+		// Dynamic parameters
 		if (key.startsWith("$")) {
 
 			String dynamicKey = key.substring(1);
 			DynamicServletParameter dynamicParameter = dynamicParameters.get(dynamicKey);
 
 			if (dynamicParameter == null) {
+				
+				if (dlParameter.required()) {
+					throw new ParameterRequired("Dynamic parameter '" + dlParameter.value() + "' is required");
+				}
+				
 				return null;
 			}
 
 			result = dynamicParameter.resolve(request, response, dynamicKey);
-		} else {
+		}
+		// Static parameters
+		else {
 
 			if (FileRef.class.isAssignableFrom(parameter.getType())) {
 				result = getRequestParameterFileRef(request, dlParameter);
@@ -468,6 +476,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		DLService dlService = service.getClass().getAnnotation(DLService.class);
 
+		// @todo use descriptors to speed up and simplify method and parameter lookup
 		for (Method method : service.getClass().getMethods()) {
 
 			DLMethod dlMethod = method.getAnnotation(DLMethod.class);

@@ -31,29 +31,29 @@ import de.s42.dl.srv.DLServletException;
  *
  * @author Benjamin Schiller
  */
-public class ContentNotFound extends DLServletException
+public class InvalidContent extends DLServletException
 {
 
-	public final static String DEFAULT_MESSAGE = "Content not found";
-	public final static String ERROR_CODE = "CONTENT_NOT_FOUND";
-	public final static int HTTP_STATUS = 404;
+	public final static String DEFAULT_MESSAGE = "Invalid content";
+	public final static String ERROR_CODE = "INVALID_CONTENT";
+	public final static int HTTP_STATUS = 500;
 
-	public ContentNotFound()
+	public InvalidContent()
 	{
 		super(DEFAULT_MESSAGE, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ContentNotFound(String msg)
+	public InvalidContent(String msg)
 	{
 		super(msg, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ContentNotFound(Throwable cause)
+	public InvalidContent(Throwable cause)
 	{
 		super(DEFAULT_MESSAGE, cause, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ContentNotFound(String msg, Throwable cause)
+	public InvalidContent(String msg, Throwable cause)
 	{
 		super(msg, cause, ERROR_CODE, HTTP_STATUS);
 	}

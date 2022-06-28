@@ -23,9 +23,8 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.srv;
+package de.s42.dl.services.remote;
 
-import de.s42.dl.services.remote.StreamResult;
 import de.s42.base.files.FilesHelper;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,6 +45,11 @@ public class FileResult implements StreamResult
 	protected final String fileEnding;
 	protected final String encoding;
 	protected final Path file;
+
+	public FileResult(Path file) throws IOException
+	{
+		this(file, 0, true);
+	}
 
 	public FileResult(Path file, int ttl) throws IOException
 	{
