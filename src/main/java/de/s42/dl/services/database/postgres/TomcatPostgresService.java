@@ -1,5 +1,5 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
  * 
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
@@ -23,25 +23,58 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-module de.sft.dls
+package de.s42.dl.services.database.postgres;
+
+import de.s42.dl.DLAttribute.AttributeDL;
+import de.s42.log.LogManager;
+import de.s42.log.Logger;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
+/**
+ *
+ * @author Benjamin Schiller
+ */
+public class TomcatPostgresService extends PostgresService
 {
-	requires java.desktop;
-	requires java.naming;
-	requires java.sql;
-	requires javaee.web.api;
-	requires de.sft.dl;
-	requires de.sft.dlt;
-	requires de.sft.log;
-	requires de.sft.base;
-	
-	exports de.s42.dl.services; 
-	exports de.s42.dl.services.content; 
-	exports de.s42.dl.services.content.dlt; 
-	exports de.s42.dl.services.database; 
-	exports de.s42.dl.services.database.postgres; 
-	exports de.s42.dl.services.l10n; 
-	exports de.s42.dl.services.permission; 
-	exports de.s42.dl.services.remote; 
-	exports de.s42.dl.services.remote.parameters; 
-	exports de.s42.dl.srv;
+
+	private final static Logger log = LogManager.getLogger(TomcatPostgresService.class.getName());
+
+	@AttributeDL(required = true)
+	protected String resourceName;
+
+	protected DataSource dataSource;
+
+	@Override
+	protected void initConnection() throws NamingException
+	{
+		log.info("initConnection", getResourceName());
+
+		InitialContext cxt = new InitialContext();
+		dataSource = (DataSource) cxt.lookup("java:/comp/env/" + getResourceName());
+	}
+
+	@Override
+	public Connection getNewConnection() throws SQLException
+	{
+		return dataSource.getConnection();
+	}
+
+	public String getResourceName()
+	{
+		return resourceName;
+	}
+
+	public void setResourceName(String resourceName)
+	{
+		this.resourceName = resourceName;
+	}
+
+	public DataSource getDataSource()
+	{
+		return dataSource;
+	}
 }

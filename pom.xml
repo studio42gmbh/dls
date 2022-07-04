@@ -16,7 +16,7 @@
 		<dependency>
 			<groupId>de.s42</groupId>
 			<artifactId>base42</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.2</version>
 			<scope>compile</scope>
 			<type>jar</type>
 		</dependency>
@@ -46,6 +46,14 @@
 			<artifactId>javaee-web-api</artifactId>
 			<version>8.0.1</version>
 			<scope>provided</scope>
+			<type>jar</type>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.4.0</version>
+			<scope>compile</scope>
 			<type>jar</type>
 		</dependency>
 	</dependencies>	

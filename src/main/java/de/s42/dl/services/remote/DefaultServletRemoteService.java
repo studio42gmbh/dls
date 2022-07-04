@@ -253,10 +253,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 				byte[] data = new byte[(int) p.getSize()];
 				in.read(data);
-				// @todo Optimize temp files to support FileService during upload of files?
-				// File tempFile = File.createTempFile("warp", p.getSubmittedFileName());
 				File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
-				// log.debug("Temp Folder: " + folder.getAbsolutePath());
 				File tempFile = File.createTempFile("dl-", "", folder);
 				log.debug("Temp File: " + tempFile.getAbsolutePath());
 
@@ -308,7 +305,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 			if (requestAsPart == null) {
 
-				//@todo WARP-110 Handle to big uploads properly - currently nothing is returned to client
+				//@todo Handle to big uploads properly - currently nothing is returned to client
 				Part p = request.getPart(key);
 				if (p != null) {
 
@@ -317,8 +314,6 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 						try ( InputStream in = p.getInputStream()) {
 							byte[] data = new byte[(int) p.getSize()];
 							in.read(data);
-							//@todo Optimize temp files to support FileService during upload of files?
-							//File tempFile = File.createTempFile("warp", p.getSubmittedFileName());
 							File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
 							//log.debug("Temp Folder: " + folder.getAbsolutePath());
 							File tempFile = File.createTempFile("dl-", "", folder);
