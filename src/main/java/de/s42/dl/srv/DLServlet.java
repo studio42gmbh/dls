@@ -60,9 +60,9 @@ public class DLServlet extends HttpServlet
 		} catch (Throwable ex) {
 
 			if (ex instanceof DLServletException) {
-				log.error(((DLServletException)ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
-			}
-			else {
+				log.error(((DLServletException) ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
+				log.error(ex);
+			} else {
 				log.error(ex, ex.getMessage(), request.getRequestURL());
 			}
 
@@ -87,8 +87,8 @@ public class DLServlet extends HttpServlet
 
 					out.print(
 						"{\"error\":\""
-						+ (errorMessage != null ? 
-							errorMessage
+						+ (errorMessage != null
+							? errorMessage
 								.replaceAll("\n", "")
 								.replaceAll("\\\\", "\\\\\\\\") : "") + "\""
 						+ ", \"errorClass\":\"" + errorClass + "\""

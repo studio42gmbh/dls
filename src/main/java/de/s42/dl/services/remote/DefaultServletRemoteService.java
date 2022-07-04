@@ -42,6 +42,7 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
+import de.s42.dl.services.l10n.LocalizationService;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.BufferedReader;
@@ -81,6 +82,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 	@AttributeDL(required = false)
 	protected PermissionService permissionService;
+
+	@AttributeDL(required = false)
+	protected LocalizationService localizationService;
 
 	@AttributeDL(required = true)
 	protected DLCore core;
@@ -128,7 +132,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 						// Just add classes with annotation DLService
 						if (dlService != null) {
 							services.add(service.getName(), service);
-							serviceDescriptors.add(service.getName(), new ServiceDescriptor(service));
+							serviceDescriptors.add(service.getName(), new ServiceDescriptor(service, localizationService));
 						}
 					}
 				}
@@ -368,17 +372,16 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			DynamicServletParameter dynamicParameter = dynamicParameters.get(dynamicKey);
 
 			if (dynamicParameter == null) {
-				
+
 				if (dlParameter.required()) {
 					throw new ParameterRequired("Dynamic parameter '" + dlParameter.value() + "' is required");
 				}
-				
+
 				return null;
 			}
 
 			result = dynamicParameter.resolve(request, response, dynamicKey);
-		}
-		// Static parameters
+		} // Static parameters
 		else {
 
 			if (FileRef.class.isAssignableFrom(parameter.getType())) {
@@ -557,5 +560,15 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	public ServiceDescriptor[] getServiceDescriptors()
 	{
 		return serviceDescriptorsArray;
+	}
+
+	public LocalizationService getLocalizationService()
+	{
+		return localizationService;
+	}
+
+	public void setLocalizationService(LocalizationService localizationService)
+	{
+		this.localizationService = localizationService;
 	}
 }

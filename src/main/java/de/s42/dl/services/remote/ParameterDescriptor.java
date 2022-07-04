@@ -27,6 +27,7 @@ package de.s42.dl.services.remote;
 
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLParameter.Validation;
+import de.s42.dl.services.l10n.LocalizationService;
 import java.lang.reflect.Parameter;
 
 /**
@@ -36,19 +37,31 @@ import java.lang.reflect.Parameter;
 public class ParameterDescriptor
 {
 
+	protected final ServiceDescriptor service;
+
+	protected final MethodDescriptor method;
+
 	protected final Parameter parameter;
 
 	protected final DLParameter dlParameter;
+
+	protected final LocalizationService localizationService;
 
 	protected final String name;
 
 	protected final boolean isStatic;
 
-	public ParameterDescriptor(Parameter parameter)
+	public ParameterDescriptor(ServiceDescriptor service, MethodDescriptor method, Parameter parameter, LocalizationService localizationService)
 	{
+		assert service != null;
+		assert method != null;
+		assert localizationService != null;
 		assert parameter != null;
 
+		this.service = service;
+		this.method = method;
 		this.parameter = parameter;
+		this.localizationService = localizationService;
 
 		dlParameter = parameter.getAnnotation(DLParameter.class);
 
@@ -90,7 +103,7 @@ public class ParameterDescriptor
 	{
 		return dlParameter.defaultValue();
 	}
-	
+
 	public boolean isRequired()
 	{
 		return dlParameter.required();
@@ -113,7 +126,21 @@ public class ParameterDescriptor
 
 	public String getDescription()
 	{
-		// @todo add l10n description
-		return "";
+		return localizationService.localize(getService().getName() + "." + getMethod().getName() + "." + getName() + ".description");
+	}
+
+	public ServiceDescriptor getService()
+	{
+		return service;
+	}
+
+	public MethodDescriptor getMethod()
+	{
+		return method;
+	}
+
+	public LocalizationService getLocalizationService()
+	{
+		return localizationService;
 	}
 }

@@ -28,6 +28,7 @@ package de.s42.dl.srv;
 import de.s42.base.collections.MappedList;
 import de.s42.dl.DLCore;
 import de.s42.dl.DLInstance;
+import de.s42.dl.DLModule;
 import de.s42.dl.DLType;
 import de.s42.dl.exceptions.DLException;
 import de.s42.dl.services.Service;
@@ -65,17 +66,26 @@ public class DLServletContextListener implements ServletContextListener
 			log.info("dlConfiguration", dlConfiguration);
 
 			DLCore core = (DLCore) Class.forName(coreClass).getConstructor().newInstance();
+			DLType serviceType = core.getType(Service.class).orElseThrow();
 
-			core.parse(dlConfiguration);
+			DLModule module = core.parse(dlConfiguration);
 
 			// Init services
-			DLType serviceType = core.getType(Service.class).orElseThrow();
+			for (DLInstance child : module.getChildren()) {
+
+				if (serviceType.isAssignableFrom(child.getType())) {
+
+					Service service = child.toJavaObject(core);
+					service.init();
+				}
+			}
+
+			// Map services
 			for (DLInstance exported : core.getExported()) {
 
 				if (serviceType.isAssignableFrom(exported.getType())) {
 
 					Service service = exported.toJavaObject(core);
-					service.init();
 					services.add(service.getName(), service);
 				}
 			}

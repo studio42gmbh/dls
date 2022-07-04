@@ -29,6 +29,7 @@ import de.s42.base.strings.StringHelper;
 import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
+import de.s42.dl.services.l10n.LocalizationService;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,14 +46,20 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 
 	protected final DLService dlService;
 
+	protected final LocalizationService localizationService;
+
 	protected final String name;
 	protected final String className;
 
 	protected final MethodDescriptor[] methods;
 
-	public ServiceDescriptor(Service service)
+	public ServiceDescriptor(Service service, LocalizationService localizationService)
 	{
+		assert service != null;
+		assert localizationService != null;
+
 		this.service = service;
+		this.localizationService = localizationService;
 
 		dlService = service.getClass().getAnnotation(DLService.class);
 
@@ -64,7 +71,7 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 		for (Method method : service.getClass().getMethods()) {
 
 			if (method.getAnnotation(DLMethod.class) != null) {
-				meths.add(new MethodDescriptor(method));
+				meths.add(new MethodDescriptor(this, method, localizationService));
 			}
 		}
 
@@ -95,8 +102,7 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 
 	public String getDescription()
 	{
-		// @todo add l10n description
-		return "";
+		return localizationService.localize(getName() + ".description");
 	}
 
 	public boolean isUserLoggedIn()
@@ -122,5 +128,10 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 		}
 
 		return getName().compareTo(o.getName());
+	}
+
+	public LocalizationService getLocalizationService()
+	{
+		return localizationService;
 	}
 }
