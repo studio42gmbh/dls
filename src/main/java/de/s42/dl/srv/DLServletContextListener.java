@@ -30,13 +30,10 @@ import de.s42.dl.DLCore;
 import de.s42.dl.DLInstance;
 import de.s42.dl.DLModule;
 import de.s42.dl.DLType;
-import de.s42.dl.exceptions.DLException;
 import de.s42.dl.services.Service;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.lang.reflect.InvocationTargetException;
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -54,8 +51,9 @@ public class DLServletContextListener implements ServletContextListener
 	@Override
 	public void contextInitialized(ServletContextEvent sce)
 	{
+		log.info("contextInitialized");
+
 		try {
-			log.debug("contextInitialized");
 
 			String coreClass = sce.getServletContext().getInitParameter(getClass().getName() + ".coreClass");
 			String configuration = sce.getServletContext().getInitParameter(getClass().getName() + ".configuration");
@@ -91,7 +89,7 @@ public class DLServletContextListener implements ServletContextListener
 			}
 
 			sce.getServletContext().setAttribute(DLServlet.class.getName() + ".services", services);
-		} catch (DLException | ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InstantiationException | NoSuchMethodException | SecurityException | InvocationTargetException | NamingException ex) {
+		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
 	}
@@ -99,15 +97,21 @@ public class DLServletContextListener implements ServletContextListener
 	@Override
 	public void contextDestroyed(ServletContextEvent sce)
 	{
-		log.debug("contextDestroyed");
+		log.info("contextDestroyed");
 
-		sce.getServletContext().removeAttribute(DLServlet.class.getName() + ".services");
+		try {
 
-		// Exit services
-		for (Service service : services.values()) {
-			service.exit();
+			sce.getServletContext().removeAttribute(DLServlet.class.getName() + ".services");
+
+			// Exit services
+			for (Service service : services.values()) {
+				service.exit();
+			}
+
+			services.clear();
+
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
 		}
-
-		services.clear();
 	}
 }

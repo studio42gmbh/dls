@@ -32,11 +32,21 @@ import de.s42.dl.services.AbstractService;
  *
  * @author Benjamin Schiller
  */
-public class AbstractDatabaseService extends AbstractService
+public abstract class AbstractDatabaseService extends AbstractService
 {
 
 	@DLAttribute.AttributeDL(required = true)
 	protected DatabaseService databaseService;
+
+	public void createDatabase() throws Exception
+	{
+		// Create tables etc
+	}
+
+	public void dropDatabase() throws Exception
+	{
+		// Drop tables etc		
+	}
 
 	public DatabaseService getDatabaseService()
 	{

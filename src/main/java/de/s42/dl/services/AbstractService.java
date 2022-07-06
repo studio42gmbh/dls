@@ -25,6 +25,8 @@
 //</editor-fold>
 package de.s42.dl.services;
 
+import de.s42.dl.services.remote.ParameterRequired;
+
 /**
  *
  * @author Benjamin Schiller
@@ -35,14 +37,28 @@ public abstract class AbstractService implements Service
 	protected String name;
 	protected boolean inited;
 
-	protected void initService()
+	protected void initService() throws Exception
 	{
 		// implement in your service
 	}
 
-	protected void exitService()
+	protected void exitService() throws Exception
 	{
 		// implement in your service
+	}
+	
+	protected void assertRequired(String name, Object value) throws ParameterRequired
+	{
+		if (value == null) {
+			throw new ParameterRequired("Parameter " + name + " is required");
+		}
+	}
+	
+	protected void assertInited() throws ServiceNotInited
+	{
+		if (!isInited()) {
+			throw new ServiceNotInited(this);
+		}
 	}
 
 	@Override
@@ -68,7 +84,7 @@ public abstract class AbstractService implements Service
 	}
 
 	@Override
-	public synchronized void init()
+	public synchronized void init() throws Exception
 	{
 		if (isInited()) {
 			return;
@@ -80,7 +96,7 @@ public abstract class AbstractService implements Service
 	}
 
 	@Override
-	public synchronized void exit()
+	public synchronized void exit() throws Exception
 	{
 		if (!isInited()) {
 			return;

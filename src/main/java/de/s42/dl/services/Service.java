@@ -36,7 +36,7 @@ public interface Service
 
 	public boolean isInited();
 
-	public void init();
+	public void init() throws Exception;
 
-	public void exit();
+	public void exit() throws Exception;
 }
