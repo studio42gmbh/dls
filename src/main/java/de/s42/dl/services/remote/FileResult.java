@@ -188,6 +188,9 @@ public class FileResult implements StreamResult
 	@Override
 	public long stream(OutputStream out) throws IOException
 	{
+		assert file != null;
+		assert out != null;
+		
 		return Files.copy(file, out);
 	}
 }

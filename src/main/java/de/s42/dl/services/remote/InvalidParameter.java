@@ -23,25 +23,38 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.remote.parameters;
+package de.s42.dl.services.remote;
 
-import de.s42.dl.services.remote.DynamicServletParameter;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import de.s42.dl.srv.DLServletException;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class RequestDynamicParameter implements DynamicServletParameter
+public class InvalidParameter extends DLServletException
 {
 
-	@Override
-	public Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	public final static String DEFAULT_MESSAGE = "Invalid Parameter";
+	public final static String ERROR_CODE = "INVALID_PARAMETER";
+	public final static int HTTP_STATUS = 400;
+
+	public InvalidParameter()
 	{
-		assert request != null;
-		
-		return request;
+		super(DEFAULT_MESSAGE, ERROR_CODE, HTTP_STATUS);
+	}
+
+	public InvalidParameter(String msg)
+	{
+		super(msg, ERROR_CODE, HTTP_STATUS);
+	}
+
+	public InvalidParameter(Throwable cause)
+	{
+		super(DEFAULT_MESSAGE, cause, ERROR_CODE, HTTP_STATUS);
+	}
+
+	public InvalidParameter(String msg, Throwable cause)
+	{
+		super(msg, cause, ERROR_CODE, HTTP_STATUS);
 	}
 }

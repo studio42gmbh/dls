@@ -38,7 +38,7 @@ public class ResponseDynamicParameter implements DynamicServletParameter
 {
 
 	@Override
-	public synchronized Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	public Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
 	{
 		assert response != null;
 

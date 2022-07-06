@@ -23,25 +23,44 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.remote.parameters;
+package de.s42.dl.services;
 
-import de.s42.dl.services.remote.DynamicServletParameter;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import de.s42.dl.services.permission.*;
+import de.s42.dl.srv.DLServletException;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class RequestDynamicParameter implements DynamicServletParameter
+public class InvalidServiceState extends DLServletException
 {
 
-	@Override
-	public Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	public final static String DEFAULT_MESSAGE = "Service is in an invalid state";
+	public final static String ERROR_CODE = "INVALID_SERVICE_STATE";
+	public final static int HTTP_STATUS = 500;
+
+	public InvalidServiceState()
 	{
-		assert request != null;
-		
-		return request;
+		super(DEFAULT_MESSAGE, ERROR_CODE, HTTP_STATUS);
 	}
+
+	public InvalidServiceState(String msg)
+	{
+		super(msg, ERROR_CODE, HTTP_STATUS);
+	}
+
+	public InvalidServiceState(Throwable cause)
+	{
+		super(DEFAULT_MESSAGE, cause, ERROR_CODE, HTTP_STATUS);
+	}
+
+	public InvalidServiceState(String msg, Throwable cause)
+	{
+		super(msg, cause, ERROR_CODE, HTTP_STATUS);
+	}
+	
+	public InvalidServiceState(Service service)
+	{
+		super("Service " + service.getName() + " of type " + service.getClass().getName() + " is in an invalid state", ERROR_CODE, HTTP_STATUS);
+	}	
 }

@@ -43,6 +43,8 @@ import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
 import de.s42.dl.services.l10n.LocalizationService;
+import de.s42.dl.srv.DLServletException;
+import de.s42.dl.srv.ErrorCode;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.BufferedReader;
@@ -74,59 +76,59 @@ import org.json.JSONObject;
 // @todo optimize service method caching (lookup and permissions)
 public class DefaultServletRemoteService extends AbstractService implements ServletRemoteService, DLContainer<DynamicServletParameter>
 {
-
+	
 	private final static Logger log = LogManager.getLogger(DefaultServletRemoteService.class.getName());
-
+	
 	@AttributeDL(required = false, defaultValue = "true")
 	protected boolean validatePermissions = true;
-
+	
 	@AttributeDL(required = false)
 	protected PermissionService permissionService;
-
+	
 	@AttributeDL(required = false)
 	protected LocalizationService localizationService;
-
+	
 	@AttributeDL(required = true)
 	protected DLCore core;
-
+	
 	@AttributeDL(ignore = true)
 	protected final MappedList<String, Service> services = new MappedList<>();
-
+	
 	@AttributeDL(ignore = true)
 	protected final MappedList<String, ServiceDescriptor> serviceDescriptors = new MappedList<>();
-
+	
 	@AttributeDL(ignore = true)
 	protected final Map<String, DynamicServletParameter> dynamicParameters = new HashMap<>();
-
+	
 	protected ServiceDescriptor[] serviceDescriptorsArray;
-
+	
 	@Override
 	public void addChild(String name, DynamicServletParameter child)
 	{
 		assert name != null;
 		assert child != null;
-
+		
 		dynamicParameters.put(name, child);
 	}
-
+	
 	@Override
 	protected void initService()
 	{
 		log.info("initService");
-
+		
 		try {
 
 			// Init services
 			DLType serviceType = core.getType(Service.class).orElseThrow();
 			for (DLInstance exported : core.getExported()) {
-
+				
 				if (serviceType.isAssignableFrom(exported.getType())) {
-
+					
 					Service service = exported.toJavaObject(core);
 
 					// Dont expose itself
 					if (service != this) {
-
+						
 						DLService dlService = service.getClass().getAnnotation(DLService.class);
 
 						// Just add classes with annotation DLService
@@ -137,34 +139,34 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					}
 				}
 			}
-
+			
 			serviceDescriptorsArray = serviceDescriptors.values().toArray(ServiceDescriptor[]::new);
-
+			
 			Arrays.sort(serviceDescriptorsArray);
-
+			
 		} catch (DLException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
-
+	
 	@Override
 	protected void exitService()
 	{
 		log.info("exitService");
 	}
-
+	
 	protected void setTTL(HttpServletResponse response, int ttl)
 	{
 		assert response != null;
 		assert ttl >= 0;
-
+		
 		if (ttl > 0) {
 			response.setHeader("Cache-Control", "public, max-age=" + ttl);
 		} else {
 			response.setHeader("Cache-Control", "private");
 		}
 	}
-
+	
 	protected void sendStreamedResponse(HttpServletResponse response, StreamResult result) throws IOException
 	{
 		assert response != null;
@@ -178,7 +180,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		// Encoding
 		String encoding = result.getEncoding();
-
+		
 		if (encoding != null) {
 			response.setCharacterEncoding(encoding);
 		}
@@ -197,7 +199,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			log.info("Sent streamed response", StringHelper.toString(result), bytesWritten);
 		}
 	}
-
+	
 	protected void sendJSONResponse(HttpServletResponse response, Object result, int ttl) throws IOException, DLException
 	{
 		assert response != null;
@@ -205,14 +207,14 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		// Send JSON result to client
 		setTTL(response, ttl);
-
+		
 		response.setContentType("application/json");
 		response.setCharacterEncoding("UTF-8");
-
+		
 		if (result != null) {
 			result = JsonWriter.toJSON(core.convertFromJavaObject(result)).toString();
 		}
-
+		
 		if (result != null) {
 			try ( PrintWriter out = response.getWriter()) {
 				out.print(result);
@@ -220,7 +222,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			}
 		}
 	}
-
+	
 	protected void sendResponse(HttpServletResponse response, Object result, int ttl) throws IOException, DLException
 	{
 		assert response != null;
@@ -235,82 +237,82 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		// Default to sending result as JSON
 		sendJSONResponse(response, result, ttl);
 	}
-
+	
 	protected FileRef getRequestParameterFileRef(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
 	{
 		if (request.getContentType() == null || !request.getContentType().startsWith("multipart/form-data")) {
 			throw new ParameterRequired("File parameter '" + dlParameter.value() + "' needs to be posted as 'multipart/form-data'");
 		}
-
+		
 		Part p = request.getPart(dlParameter.value());
 		if (p != null) {
-
+			
 			if (p.getSize() > dlParameter.maxLength()) {
 				throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + p.getSize());
 			}
-
+			
 			try ( InputStream in = p.getInputStream()) {
-
+				
 				byte[] data = new byte[(int) p.getSize()];
 				in.read(data);
 				File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
 				File tempFile = File.createTempFile("dl-", "", folder);
 				log.debug("Temp File: " + tempFile.getAbsolutePath());
-
+				
 				FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
-
+				
 				Map<String, Object> attributes = new HashMap();
-
+				
 				return new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes);
 			}
 		}
-
+		
 		return null;
 	}
-
+	
 	protected <DataType> DataType getRequestParameter(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
 	{
 		String key = dlParameter.value();
-
+		
 		if (request.getContentType() != null
 			&& (request.getContentType().startsWith("application/json")
 			//see https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS -> Simple Request avoids Preflight
 			|| (request.getContentType().startsWith("text/plain")))) {
-
+			
 			JSONObject requestAsJSON = (JSONObject) request.getAttribute("_jsonParameters");
-
+			
 			if (requestAsJSON == null) {
-
+				
 				StringBuilder jb = new StringBuilder();
 				String line;
-
+				
 				BufferedReader reader = request.getReader();
 				while ((line = reader.readLine()) != null) {
 					jb.append(line);
 				}
-
+				
 				requestAsJSON = new JSONObject(jb.toString());
-
+				
 				request.setAttribute("_jsonParameters", requestAsJSON);
 			}
-
+			
 			if (requestAsJSON.has(key) && !requestAsJSON.isNull(key)) {
 				return (DataType) requestAsJSON.get(key).toString();
 			}
-
+			
 			return null;
 		} else if (request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")) {
-
+			
 			Object requestAsPart = request.getAttribute("_partParameter_" + key);
-
+			
 			if (requestAsPart == null) {
 
 				//@todo Handle to big uploads properly - currently nothing is returned to client
 				Part p = request.getPart(key);
 				if (p != null) {
-
+					
 					if (p.getSubmittedFileName() != null) {
-
+						
 						try ( InputStream in = p.getInputStream()) {
 							byte[] data = new byte[(int) p.getSize()];
 							in.read(data);
@@ -318,121 +320,121 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 							//log.debug("Temp Folder: " + folder.getAbsolutePath());
 							File tempFile = File.createTempFile("dl-", "", folder);
 							log.debug("Temp File: " + tempFile.getAbsolutePath());
-
+							
 							FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
-
+							
 							Map<String, Object> attributes = new HashMap();
 							FileRef ref = new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes);
-
+							
 							requestAsPart = ref;
 						}
 					} else {
-
+						
 						try ( InputStream in = p.getInputStream()) {
 							byte[] data = new byte[(int) p.getSize()];
 							in.read(data);
 							requestAsPart = new String(data, "UTF-8");
 						}
 					}
-
+					
 					request.setAttribute("_partParameter_" + key, requestAsPart);
 				}
 			}
-
+			
 			return (DataType) requestAsPart;
 		}
-
+		
 		return (DataType) request.getParameter(key);
 	}
-
+	
 	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, Parameter parameter) throws ServletException, IOException
 	{
 		assert request != null;
 		assert parameter != null;
-
+		
 		DLParameter dlParameter = parameter.getAnnotation(DLParameter.class);
-
+		
 		if (dlParameter == null) {
 			throw new ParameterRequired("Parameter is required to have a DLParameter annotation");
 		}
-
+		
 		String key = dlParameter.value();
-
+		
 		Object result;
 
 		// Dynamic parameters
 		if (key.startsWith("$")) {
-
+			
 			String dynamicKey = key.substring(1);
 			DynamicServletParameter dynamicParameter = dynamicParameters.get(dynamicKey);
-
+			
 			if (dynamicParameter == null) {
-
+				
 				if (dlParameter.required()) {
 					throw new ParameterRequired("Dynamic parameter '" + dlParameter.value() + "' is required");
 				}
-
+				
 				return null;
 			}
-
+			
 			result = dynamicParameter.resolve(request, response, dynamicKey);
 		} // Static parameters
 		else {
-
+			
 			if (FileRef.class.isAssignableFrom(parameter.getType())) {
 				result = getRequestParameterFileRef(request, dlParameter);
 			} else {
 				result = getRequestParameter(request, dlParameter);
-
+				
 				if (result != null && ((String) result).length() > dlParameter.maxLength()) {
 					throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length());
 				}
 			}
-
+			
 			result = ConversionHelper.convert(result, parameter.getType());
 		}
-
+		
 		if (dlParameter.required() && result == null) {
 			throw new ParameterRequired("Parameter '" + dlParameter.value() + "' is required");
 		}
-
+		
 		return result;
 	}
-
+	
 	protected void validatePermissions(HttpServletRequest request, DLService service, DLMethod method) throws Exception
 	{
 		assert request != null;
 		assert service != null;
 		assert method != null;
-
+		
 		if (!isValidatePermissions() || (getPermissionService() == null)) {
 			return;
 		}
-
+		
 		boolean userLoggedIn = false;
 		Set<String> permissions = new HashSet<>();
-
+		
 		userLoggedIn |= service.userLoggedIn();
-
+		
 		for (String permission : service.permissions()) {
 			if (!permission.isBlank()) {
 				permissions.add(permission);
 			}
 		}
-
+		
 		userLoggedIn |= method.userLoggedIn();
-
+		
 		for (String permission : method.permissions()) {
 			if (!permission.isBlank()) {
 				permissions.add(permission);
 			}
 		}
-
+		
 		if (userLoggedIn || !permissions.isEmpty()) {
 			getPermissionService().validate(request, userLoggedIn, permissions);
 		}
 	}
-
+	
 	@Override
 	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable
 	{
@@ -441,127 +443,176 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		// @todo make service method determination more generic (patterns, subpaths, ...)
 		String pathInfo = request.getPathInfo();
-
+		
 		if (pathInfo == null) {
 			throw new InvalidPath("Pathinfo has to be of structure /<servicename>/<servicemethod>");
 		}
-
+		
 		String[] pathParts = pathInfo.split("/");
-
+		
 		if (pathParts.length != 3) {
 			throw new InvalidPath("Pathinfo has to be of structure /<servicename>/<servicemethod>");
 		}
-
+		
 		String serviceName = pathParts[1];
-
+		
 		if (serviceName == null || serviceName.isBlank()) {
 			throw new InvalidPath("Service is required");
 		}
-
+		
 		String methodName = pathParts[2];
-
+		
 		if (methodName == null || methodName.isBlank()) {
 			throw new InvalidPath("Method is required");
 		}
-
+		
 		Optional<Service> serviceOpt = services.get(serviceName);
-
+		
 		if (serviceOpt.isEmpty()) {
 			throw new UnknownService("Service " + serviceName + " is not mapped");
 		}
-
+		
 		Service service = serviceOpt.orElseThrow();
-
+		
 		DLService dlService = service.getClass().getAnnotation(DLService.class);
 
 		// @todo use descriptors to speed up and simplify method and parameter lookup
 		for (Method method : service.getClass().getMethods()) {
-
+			
 			DLMethod dlMethod = method.getAnnotation(DLMethod.class);
-
+			
 			if (dlMethod != null) {
-
+				
 				String serviceMethodName = !dlMethod.value().isBlank() ? dlMethod.value() : method.getName();
-
+				
 				if (methodName.equals(serviceMethodName)) {
-
+					
 					validatePermissions(request, dlService, dlMethod);
-
+					
 					Parameter[] parameters = method.getParameters();
-
+					
 					Object[] callParams = new Object[parameters.length];
-
+					
 					for (int i = 0; i < parameters.length; ++i) {
-
+						
 						Parameter parameter = parameters[i];
-
+						
 						callParams[i] = getParameter(request, response, parameter);
 					}
-
+					
 					log.debug("Calling", serviceName, methodName);
-
+					
 					try {
 						Object result = method.invoke(service, callParams);
-
+						
 						sendResponse(response, result, dlMethod.ttl());
 					} catch (InvocationTargetException ex) {
-
+						
 						throw ex.getCause();
 					}
-
+					
 					return;
 				}
 			}
 		}
-
+		
 		throw new UnknownMethod("Method " + methodName + " is not mapped");
 	}
+	
+	@Override
+	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Throwable ex)
+	{
+		if (ex instanceof DLServletException) {
+			log.error(((DLServletException) ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
 
+			// @todo For debug purposes verbose atm - make this configurable
+			log.error(ex);
+		} else {
+			log.error(ex, ex.getMessage(), request.getRequestURL());
+		}
+
+		// Return unhandled exception as JSON errors
+		if (!response.isCommitted()) {
+			String errorMessage = ex.getMessage();
+			String errorClass = ex.getClass().getName();
+			
+			String errorCode;
+			if (ex instanceof ErrorCode) {
+				errorCode = ((ErrorCode) ex).getErrorCode();
+				response.setStatus(((ErrorCode) ex).getHttpStatus());
+			} // Default other execeptions to be 500 and the name of the class as errorCode
+			else {
+				errorCode = ex.getClass().getSimpleName().toUpperCase();
+				response.setStatus(500);
+			}
+			
+			response.setHeader("Cache-Control", "private");
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			try ( PrintWriter out = response.getWriter()) {
+				
+				out.print(
+					"{\"error\":\""
+					+ (errorMessage != null
+						? errorMessage
+							.replaceAll("\n", "")
+							.replaceAll("\\\\", "\\\\\\\\") : "") + "\""
+					+ ", \"errorClass\":\"" + errorClass + "\""
+					+ ", \"errorCode\":\"" + errorCode + "\""
+					+ "}");
+				out.flush();
+			} catch (IOException ex1) {
+				log.error(ex, "Error writing error response");
+			}
+		}
+		
+	}
+	
 	public boolean isValidatePermissions()
 	{
 		return validatePermissions;
 	}
-
+	
 	public void setValidatePermissions(boolean validatePermissions)
 	{
 		this.validatePermissions = validatePermissions;
 	}
-
+	
 	public DLCore getCore()
 	{
 		return core;
 	}
-
+	
 	public void setCore(DLCore core)
 	{
 		this.core = core;
 	}
-
+	
 	public PermissionService getPermissionService()
 	{
 		return permissionService;
 	}
-
+	
 	public void setPermissionService(PermissionService permissionService)
 	{
 		this.permissionService = permissionService;
 	}
-
+	
 	public Set<Service> getServices()
 	{
 		return services.values();
 	}
-
+	
 	public ServiceDescriptor[] getServiceDescriptors()
 	{
 		return serviceDescriptorsArray;
 	}
-
+	
 	public LocalizationService getLocalizationService()
 	{
 		return localizationService;
 	}
-
+	
 	public void setLocalizationService(LocalizationService localizationService)
 	{
 		this.localizationService = localizationService;

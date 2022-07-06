@@ -31,7 +31,6 @@ import de.s42.dl.services.Service;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
@@ -42,7 +41,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Benjamin Schiller
  */
-@MultipartConfig()
+@MultipartConfig
 public class DLServlet extends HttpServlet
 {
 
@@ -53,50 +52,16 @@ public class DLServlet extends HttpServlet
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException
 	{
+		assert request != null;
+		assert response != null;
 		assert remoteService != null;
+
+		log.info("processRequest");
 
 		try {
 			remoteService.call(request, response);
 		} catch (Throwable ex) {
-
-			if (ex instanceof DLServletException) {
-				log.error(((DLServletException) ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
-				log.error(ex);
-			} else {
-				log.error(ex, ex.getMessage(), request.getRequestURL());
-			}
-
-			// Return unhandled exception as JSON errors
-			if (!response.isCommitted()) {
-				String errorMessage = ex.getMessage();
-				String errorClass = ex.getClass().getName();
-
-				String errorCode;
-				if (ex instanceof ErrorCode) {
-					errorCode = ((ErrorCode) ex).getErrorCode();
-					response.setStatus(((ErrorCode) ex).getHttpStatus());
-				} else {
-					errorCode = ex.getClass().getSimpleName().toUpperCase();
-					response.setStatus(500);
-				}
-
-				response.setHeader("Cache-Control", "private");
-				response.setContentType("application/json");
-				response.setCharacterEncoding("UTF-8");
-				try ( PrintWriter out = response.getWriter()) {
-
-					out.print(
-						"{\"error\":\""
-						+ (errorMessage != null
-							? errorMessage
-								.replaceAll("\n", "")
-								.replaceAll("\\\\", "\\\\\\\\") : "") + "\""
-						+ ", \"errorClass\":\"" + errorClass + "\""
-						+ ", \"errorCode\":\"" + errorCode + "\""
-						+ "}");
-					out.flush();
-				}
-			}
+			remoteService.sendErrorResponse(request, response, ex);
 		}
 	}
 
@@ -113,6 +78,7 @@ public class DLServlet extends HttpServlet
 			throw new ServletException("Missing valid services in servlet context '" + DLServlet.class.getName() + ".services'");
 		}
 
+		// Scan for the first service of type ServletRemoteService -> use as remote bridge
 		for (Service service : services.values()) {
 			if (service instanceof ServletRemoteService) {
 				remoteService = (ServletRemoteService) service;
@@ -121,7 +87,7 @@ public class DLServlet extends HttpServlet
 		}
 
 		if (remoteService == null) {
-			throw new ServletException("Missing valid remoteService in services");
+			throw new ServletException("Missing valid remote service of type ServletRemoteService in services (defined in configuration DL)");
 		}
 	}
 
@@ -131,6 +97,8 @@ public class DLServlet extends HttpServlet
 		log.info("destroy");
 
 		super.destroy();
+
+		remoteService = null;
 	}
 
 	@Override

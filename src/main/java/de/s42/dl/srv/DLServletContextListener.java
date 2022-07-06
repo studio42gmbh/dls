@@ -70,7 +70,7 @@ public class DLServletContextListener implements ServletContextListener
 
 			DLModule module = core.parse(dlConfiguration);
 
-			// Init services
+			// Init all services
 			for (DLInstance child : module.getChildren()) {
 
 				if (serviceType.isAssignableFrom(child.getType())) {
@@ -80,7 +80,7 @@ public class DLServletContextListener implements ServletContextListener
 				}
 			}
 
-			// Map services
+			// Map services that were @export in the DL config
 			for (DLInstance exported : core.getExported()) {
 
 				if (serviceType.isAssignableFrom(exported.getType())) {
