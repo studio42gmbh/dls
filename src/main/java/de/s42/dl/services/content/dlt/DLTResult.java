@@ -30,7 +30,6 @@ import de.s42.dl.services.content.ContentNotFound;
 import de.s42.dl.srv.DLServletException;
 import de.s42.dl.services.remote.StreamResult;
 import de.s42.dlt.DLT;
-import de.s42.dlt.parser.DefaultTemplateContext;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -76,7 +75,7 @@ public class DLTResult implements StreamResult
 
 		String resource = optResource.orElseThrow();
 
-		DefaultTemplateContext context = new DefaultTemplateContext();
+		DLTTemplateContext context = new DLTTemplateContext();
 
 		if (bindings != null) {
 			context.addBindings(bindings);
