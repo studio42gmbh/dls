@@ -25,7 +25,7 @@
 //</editor-fold>
 package de.s42.dl.services.database;
 
-import de.s42.dl.DLAttribute;
+import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.services.AbstractService;
 
 /**
@@ -35,8 +35,11 @@ import de.s42.dl.services.AbstractService;
 public abstract class AbstractDatabaseService extends AbstractService
 {
 
-	@DLAttribute.AttributeDL(required = true)
+	@AttributeDL(required = true)
 	protected DatabaseService databaseService;
+
+	@AttributeDL(required = false, defaultValue = "false")
+	protected boolean createDatabase = false;
 
 	public void createDatabase() throws Exception
 	{
@@ -48,6 +51,26 @@ public abstract class AbstractDatabaseService extends AbstractService
 		// Drop tables etc		
 	}
 
+	@Override
+	public synchronized void init() throws Exception
+	{
+		if (isInited()) {
+			return;
+		}
+
+		assertRequired("databaseService", databaseService);
+
+		initService();
+
+		setInited(true);
+
+		// Drop and create database if flag is set
+		if (isCreateDatabase()) {
+			dropDatabase();
+			createDatabase();
+		}
+	}
+
 	public DatabaseService getDatabaseService()
 	{
 		return databaseService;
@@ -56,5 +79,15 @@ public abstract class AbstractDatabaseService extends AbstractService
 	public void setDatabaseService(DatabaseService databaseService)
 	{
 		this.databaseService = databaseService;
+	}
+
+	public boolean isCreateDatabase()
+	{
+		return createDatabase;
+	}
+
+	public void setCreateDatabase(boolean createDatabase)
+	{
+		this.createDatabase = createDatabase;
 	}
 }

@@ -30,6 +30,7 @@ import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.l10n.LocalizationService;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,6 +139,11 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 	public Class getReturnType()
 	{
 		return method.getReturnType();
+	}
+
+	public Type getGenericReturnType()
+	{
+		return method.getGenericReturnType();
 	}
 
 	public String getDescription()

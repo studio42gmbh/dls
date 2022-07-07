@@ -43,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import org.json.JSONException;
@@ -199,7 +200,12 @@ public abstract class AbstractStatement
 		}
 	}
 
-	protected <T> T executeQuerySingleOrNoEntity(T fillTarget, Object... parameters) throws Exception
+	protected <T> T executeQuerySingleEntity(T fillTarget, Object... parameters) throws Exception
+	{
+		return executeQuerySingleOrNoEntity(fillTarget, parameters).orElseThrow();
+	}
+
+	protected <T> Optional<T> executeQuerySingleOrNoEntity(T fillTarget, Object... parameters) throws Exception
 	{
 		//log.trace("Called executeQuerySingleEntity");
 
@@ -238,7 +244,7 @@ public abstract class AbstractStatement
 			}
 
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
-			return entity;
+			return Optional.ofNullable(entity);
 
 		} catch (Exception ex) {
 			throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
