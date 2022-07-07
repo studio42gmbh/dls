@@ -78,6 +78,13 @@ public abstract class AbstractStatement
 		log.info("Statement", statement);
 	}
 
+	protected void assertRequired(String name, Object value)
+	{
+		if (value == null) {
+			throw new IllegalArgumentException("Argument " + name + " is required");
+		}
+	}
+
 	protected void setParameters(PreparedStatement statement, Object... parameters) throws SQLException
 	{
 		if (parameters.length > 0) {
