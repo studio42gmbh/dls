@@ -60,7 +60,7 @@ public abstract class AbstractService implements Service
 			throw new ServiceNotInited(this);
 		}
 	}
-
+	
 	@Override
 	public String getName()
 	{
