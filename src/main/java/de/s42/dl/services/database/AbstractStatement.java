@@ -43,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -110,6 +111,8 @@ public abstract class AbstractStatement
 					} else {
 						statement.setTimestamp(c, new java.sql.Timestamp(((Date) parameter).getTime()));
 					}
+				} else if (parameter instanceof Map) {
+					statement.setString(c, (new JSONObject((Map) parameter)).toString());
 				} else {
 					if (parameter != null) {
 						//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
