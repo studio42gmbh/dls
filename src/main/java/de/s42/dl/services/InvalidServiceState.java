@@ -25,7 +25,6 @@
 //</editor-fold>
 package de.s42.dl.services;
 
-import de.s42.dl.services.permission.*;
 import de.s42.dl.srv.DLServletException;
 
 /**
@@ -58,9 +57,9 @@ public class InvalidServiceState extends DLServletException
 	{
 		super(msg, cause, ERROR_CODE, HTTP_STATUS);
 	}
-	
+
 	public InvalidServiceState(Service service)
 	{
 		super("Service " + service.getName() + " of type " + service.getClass().getName() + " is in an invalid state", ERROR_CODE, HTTP_STATUS);
-	}	
+	}
 }
