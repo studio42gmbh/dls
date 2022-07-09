@@ -28,6 +28,7 @@ package de.s42.dl.services.remote;
 import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.l10n.LocalizationService;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
@@ -93,6 +94,11 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 
 		parameters = params.toArray(ParameterDescriptor[]::new);
 		staticParameters = staticParams.toArray(ParameterDescriptor[]::new);
+	}
+
+	public Object call(Object... parameters) throws IllegalAccessException, InvocationTargetException
+	{
+		return getMethod().invoke(getService().getService(), parameters);
 	}
 
 	public Method getMethod()

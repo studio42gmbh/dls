@@ -33,7 +33,10 @@ import de.s42.dl.services.l10n.LocalizationService;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  *
@@ -52,6 +55,7 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 	protected final String className;
 
 	protected final MethodDescriptor[] methods;
+	protected final Map<String, MethodDescriptor> methodsByName;
 
 	public ServiceDescriptor(Service service, LocalizationService localizationService)
 	{
@@ -75,9 +79,17 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 			}
 		}
 
+		// Quick iteration over methods
 		methods = meths.toArray(MethodDescriptor[]::new);
-
 		Arrays.sort(methods);
+
+		// Lookup methods by name
+		methodsByName = new HashMap<>();
+
+		for (MethodDescriptor method : methods) {
+			methodsByName.put(method.getName(), method);
+		}
+
 	}
 
 	public Service getService()
@@ -98,6 +110,13 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 	public MethodDescriptor[] getMethods()
 	{
 		return methods;
+	}
+
+	public Optional<MethodDescriptor> getMethod(String name)
+	{
+		assert name != null;
+
+		return Optional.ofNullable(methodsByName.get(name));
 	}
 
 	public String getDescription()

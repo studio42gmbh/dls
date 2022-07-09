@@ -54,8 +54,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -352,16 +350,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		return (DataType) request.getParameter(key);
 	}
 
-	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, Parameter parameter) throws ServletException, IOException
+	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, ParameterDescriptor parameter) throws ServletException, IOException
 	{
 		assert request != null;
 		assert parameter != null;
 
-		DLParameter dlParameter = parameter.getAnnotation(DLParameter.class);
-
-		if (dlParameter == null) {
-			throw new ParameterRequired("Parameter is required to have a DLParameter annotation");
-		}
+		DLParameter dlParameter = parameter.getDlParameter();
 
 		String key = dlParameter.value();
 
@@ -476,57 +470,45 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			throw new InvalidPath("Method is required");
 		}
 
-		Optional<Service> serviceOpt = services.get(serviceName);
+		Optional<ServiceDescriptor> optService = serviceDescriptors.get(serviceName);
 
-		if (serviceOpt.isEmpty()) {
+		if (optService.isEmpty()) {
 			throw new UnknownService("Service " + serviceName + " is not mapped");
 		}
 
-		Service service = serviceOpt.orElseThrow();
+		ServiceDescriptor service = optService.orElseThrow();
 
-		DLService dlService = service.getClass().getAnnotation(DLService.class);
+		Optional<MethodDescriptor> optMethod = service.getMethod(methodName);
 
-		// @todo use descriptors to speed up and simplify method and parameter lookup
-		for (Method method : service.getClass().getMethods()) {
-
-			DLMethod dlMethod = method.getAnnotation(DLMethod.class);
-
-			if (dlMethod != null) {
-
-				String serviceMethodName = !dlMethod.value().isBlank() ? dlMethod.value() : method.getName();
-
-				if (methodName.equals(serviceMethodName)) {
-
-					validatePermissions(request, dlService, dlMethod);
-
-					Parameter[] parameters = method.getParameters();
-
-					Object[] callParams = new Object[parameters.length];
-
-					for (int i = 0; i < parameters.length; ++i) {
-
-						Parameter parameter = parameters[i];
-
-						callParams[i] = getParameter(request, response, parameter);
-					}
-
-					log.debug("Calling", serviceName, methodName);
-
-					try {
-						Object result = method.invoke(service, callParams);
-
-						sendResponse(response, result, dlMethod.ttl());
-					} catch (InvocationTargetException ex) {
-
-						throw ex.getCause();
-					}
-
-					return;
-				}
-			}
+		if (optMethod.isEmpty()) {
+			throw new UnknownMethod("Method " + methodName + " is not mapped");
 		}
 
-		throw new UnknownMethod("Method " + methodName + " is not mapped");
+		MethodDescriptor method = optMethod.orElseThrow();
+
+		validatePermissions(request, service.getDlService(), method.getDlMethod());
+
+		ParameterDescriptor[] parameters = method.getParameters();
+
+		Object[] callParams = new Object[parameters.length];
+
+		for (int i = 0; i < parameters.length; ++i) {
+
+			ParameterDescriptor parameter = parameters[i];
+
+			callParams[i] = getParameter(request, response, parameter);
+		}
+
+		log.debug("Calling", serviceName, methodName);
+
+		try {
+			Object result = method.call(callParams);
+
+			sendResponse(response, result, method.getTtl());
+		} catch (InvocationTargetException ex) {
+
+			throw ex.getCause();
+		}
 	}
 
 	@Override
