@@ -33,6 +33,7 @@ import de.s42.base.resources.ResourceHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -62,20 +63,41 @@ public abstract class AbstractStatement
 
 	protected final static Date NULL_DATE = new Date(-1);
 
-	private String name;
+	protected String name;
 
 	@AttributeDL(required = false)
-	private String statement;
+	protected String statement;
 
 	@AttributeDL(required = true)
 	protected DatabaseService databaseService;
 
-	public AbstractStatement(DatabaseService databaseService) throws Exception
+	public AbstractStatement()
 	{
-		log.info("AbstractStatement");
+
+	}
+
+	public AbstractStatement(DatabaseService databaseService) throws IOException
+	{
+		assert databaseService != null;
+
 		this.databaseService = databaseService;
 		name = getClass().getName();
+
 		statement = ResourceHelper.getResourceAsString(getClass(), getClass().getSimpleName() + ".sql").orElseThrow();
+
+		log.debug("Statement", statement);
+	}
+
+	public AbstractStatement(DatabaseService databaseService, String statementResource) throws IOException
+	{
+		assert databaseService != null;
+		assert statementResource != null;
+
+		this.databaseService = databaseService;
+		name = statementResource;
+
+		statement = ResourceHelper.getResourceAsString(statementResource).orElseThrow();
+
 		log.info("Statement", statement);
 	}
 
@@ -103,6 +125,10 @@ public abstract class AbstractStatement
 					statement.setLong(c, (Long) parameter);
 				} else if (parameter instanceof Double) {
 					statement.setDouble(c, (Double) parameter);
+					//} else if (parameter instanceof UUID) {
+					//	statement.setObject(c, parameter);
+				} else if (parameter instanceof Class) {
+					statement.setString(c, ((Class) parameter).getName());
 				} else if (parameter instanceof Date) {
 
 					//@todo Is it possible to get rid of NULL_DATE to fix wrongmapping of dates ?
@@ -116,10 +142,11 @@ public abstract class AbstractStatement
 				} else {
 					if (parameter != null) {
 						//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
-						statement.setString(c, parameter.toString());
+						//statement.setString(c, parameter.toString());
+						statement.setObject(c, parameter);
 					} //unknown parameter null - set null string
 					else {
-						statement.setString(c, null);
+						statement.setObject(c, null);
 					}
 				}
 				c++;
