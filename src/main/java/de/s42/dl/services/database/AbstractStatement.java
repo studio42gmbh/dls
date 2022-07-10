@@ -152,6 +152,8 @@ public abstract class AbstractStatement
 					}
 				} else if (parameter instanceof Map) {
 					statement.setString(c, (new JSONObject((Map) parameter)).toString());
+				} else if (parameter instanceof Enum) {
+					statement.setString(c, parameter.toString());
 				} else {
 					if (parameter != null) {
 						//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
