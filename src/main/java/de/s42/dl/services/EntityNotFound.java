@@ -23,7 +23,7 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.content;
+package de.s42.dl.services;
 
 import de.s42.dl.srv.DLServletException;
 
@@ -31,29 +31,29 @@ import de.s42.dl.srv.DLServletException;
  *
  * @author Benjamin Schiller
  */
-public class ContentNotFound extends DLServletException
+public class EntityNotFound extends DLServletException
 {
 
-	public final static String DEFAULT_MESSAGE = "Content not found";
-	public final static String ERROR_CODE = "CONTENT_NOT_FOUND";
+	public final static String DEFAULT_MESSAGE = "Entity not found";
+	public final static String ERROR_CODE = "ENTITY_NOT_FOUND";
 	public final static int HTTP_STATUS = 404;
 
-	public ContentNotFound()
+	public EntityNotFound()
 	{
 		super(DEFAULT_MESSAGE, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ContentNotFound(String msg)
+	public EntityNotFound(String msg)
 	{
 		super(msg, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ContentNotFound(Throwable cause)
+	public EntityNotFound(Throwable cause)
 	{
 		super(DEFAULT_MESSAGE, cause, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ContentNotFound(String msg, Throwable cause)
+	public EntityNotFound(String msg, Throwable cause)
 	{
 		super(msg, cause, ERROR_CODE, HTTP_STATUS);
 	}

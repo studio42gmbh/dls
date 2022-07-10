@@ -16,21 +16,21 @@ package de.s42.dl.services.database;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  *
  * @author Benjamin Schiller
  * @param <EntityType>
  */
-public class FindEntities<EntityType> extends AbstractStatement
+public class FindEntities<EntityType, FilterType> extends AbstractStatement
 {
 
 	private final static Logger log = LogManager.getLogger(FindEntities.class.getName());
 
-	protected final Callable<EntityType> factory;
+	protected final Supplier<EntityType> factory;
 
-	public FindEntities(DatabaseService databaseService, Callable<EntityType> factory, String tableName, String columnName, String name) throws Exception
+	public FindEntities(DatabaseService databaseService, Supplier<EntityType> factory, String tableName, String columnName, String name) throws Exception
 	{
 		assert databaseService != null;
 		assert factory != null;
@@ -50,7 +50,7 @@ public class FindEntities<EntityType> extends AbstractStatement
 		this.statement = "SELECT * FROM " + tableName + " WHERE " + columnName + " ilike ?::text;";
 	}
 
-	public List<EntityType> execute(String filter) throws Exception
+	public List<EntityType> execute(FilterType filter) throws Exception
 	{
 		log.debug("execute", getName());
 

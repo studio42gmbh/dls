@@ -26,7 +26,7 @@
 package de.s42.dl.services.content.dlt;
 
 import de.s42.base.resources.ResourceHelper;
-import de.s42.dl.services.content.ContentNotFound;
+import de.s42.dl.services.EntityNotFound;
 import de.s42.dl.srv.DLServletException;
 import de.s42.dl.services.remote.StreamResult;
 import de.s42.dlt.DLT;
@@ -66,11 +66,11 @@ public class DLTResult implements StreamResult
 		try {
 			optResource = ResourceHelper.getResourceAsString(resourceName);
 		} catch (IOException ex) {
-			throw new ContentNotFound("Resource '" + resourceName + "' can not be read");
+			throw new EntityNotFound("Resource '" + resourceName + "' can not be read - " + ex.getMessage(), ex);
 		}
 
 		if (optResource.isEmpty()) {
-			throw new ContentNotFound("Resource '" + resourceName + "' does not exist");
+			throw new EntityNotFound("Resource '" + resourceName + "' was not found");
 		}
 
 		String resource = optResource.orElseThrow();

@@ -21,16 +21,15 @@ import java.util.function.Supplier;
 /**
  *
  * @author Benjamin Schiller
- * @param <EntityType>
  */
-public class FindEntity<EntityType, IdType> extends AbstractStatement
+public class DeleteEntity<EntityType, IdType> extends AbstractStatement
 {
 
-	private final static Logger log = LogManager.getLogger(FindEntity.class.getName());
+	private final static Logger log = LogManager.getLogger(DeleteEntity.class.getName());
 
 	protected final Supplier<EntityType> factory;
 
-	public FindEntity(DatabaseService databaseService, Supplier<EntityType> factory, String tableName, String columnName, String name) throws Exception
+	public DeleteEntity(DatabaseService databaseService, Supplier<EntityType> factory, String tableName, String columnName, String name) throws Exception
 	{
 		assert databaseService != null;
 		assert factory != null;
@@ -47,7 +46,7 @@ public class FindEntity<EntityType, IdType> extends AbstractStatement
 
 	private void initStatement(String tableName, String columnName)
 	{
-		this.statement = "SELECT * FROM " + tableName + " WHERE " + columnName + " = ? LIMIT 1;";
+		this.statement = "DELETE FROM " + tableName + " WHERE " + columnName + " = ? RETURNING *;";
 	}
 
 	public Optional<EntityType> execute(IdType id) throws Exception

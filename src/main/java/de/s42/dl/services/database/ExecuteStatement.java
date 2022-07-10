@@ -30,6 +30,11 @@ public class ExecuteStatement extends AbstractStatement
 		super(databaseService, statementResource);
 	}
 
+	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
+	{
+		super(databaseService, statementResource, name);
+	}
+
 	public void execute() throws Exception
 	{
 		log.debug("execute", getName());

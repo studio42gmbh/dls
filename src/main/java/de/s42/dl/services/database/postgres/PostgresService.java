@@ -173,13 +173,21 @@ public class PostgresService extends AbstractService implements DatabaseService
 		Connection con = getConnection();
 		con.setAutoCommit(false);
 		//con.setTransactionIsolation();
+		if (con.getAutoCommit()) {
+			log.warn("Started transaction but the connection still being autocommit=true");
+		}
 	}
 
 	@Override
 	public void commitTransaction() throws SQLException
 	{
 		Connection con = getConnection();
-		con.commit();
+		if (!con.getAutoCommit()) {
+			con.commit();
+		}
+		else {
+			log.warn("Commiting without the connection being autocommit=false");
+		}
 		con.setAutoCommit(true);
 	}
 
@@ -187,7 +195,12 @@ public class PostgresService extends AbstractService implements DatabaseService
 	public void rollbackTransaction() throws SQLException
 	{
 		Connection con = getConnection();
-		con.rollback();
+		if (!con.getAutoCommit()) {
+			con.rollback();
+		}
+		else {
+			log.warn("Rollbacking without the connection being autocommit=false");
+		}
 		con.setAutoCommit(true);
 	}
 

@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -85,7 +85,7 @@ public abstract class AbstractStatement
 
 		statement = ResourceHelper.getResourceAsString(getClass(), getClass().getSimpleName() + ".sql").orElseThrow();
 
-		log.debug("Statement", statement);
+		log.trace("Statement", statement);
 	}
 
 	public AbstractStatement(DatabaseService databaseService, String statementResource) throws IOException
@@ -98,7 +98,20 @@ public abstract class AbstractStatement
 
 		statement = ResourceHelper.getResourceAsString(statementResource).orElseThrow();
 
-		log.info("Statement", statement);
+		log.trace("Statement", statement);
+	}
+
+	public AbstractStatement(DatabaseService databaseService, String statementResource, String name) throws IOException
+	{
+		assert databaseService != null;
+		assert statementResource != null;
+
+		this.databaseService = databaseService;
+		this.name = name;
+
+		statement = ResourceHelper.getResourceAsString(statementResource).orElseThrow();
+
+		log.trace("Statement", statement);
 	}
 
 	protected void assertRequired(String name, Object value)
@@ -207,11 +220,11 @@ public abstract class AbstractStatement
 			stat.execute();
 			//getDatabaseService().incrementAndGetDbCalls();
 
-			stat.close();
+			//stat.close();
 
-			if (getDatabaseService().isAutoCloseConnection()) {
+			/*if (getDatabaseService().isAutoCloseConnection()) {
 				con.close();
-			}
+			}*/
 
 			//log.stopTimer(Log.Level.TRACE, "executeNoResult.durationDbCall", "DB Call duration");
 		} catch (SQLException ex) {
@@ -274,11 +287,11 @@ public abstract class AbstractStatement
 				}
 			}
 
-			stat.close();
+			//stat.close();
 
-			if (getDatabaseService().isAutoCloseConnection()) {
+			/*if (getDatabaseService().isAutoCloseConnection()) {
 				con.close();
-			}
+			}*/
 
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
 			return Optional.ofNullable(entity);
@@ -306,7 +319,7 @@ public abstract class AbstractStatement
 		}
 	}
 
-	protected <T> List<T> executeQueryManyEntities(Callable<T> factory, Object... parameters) throws Exception
+	protected <T> List<T> executeQueryManyEntities(Supplier<T> factory, Object... parameters) throws Exception
 	{
 		//log.trace("Called executeQueryManyEntities");
 
@@ -334,15 +347,15 @@ public abstract class AbstractStatement
 			if (resultSet != null) {
 
 				while (resultSet.next()) {
-					entities.add(mapResultToSingleEntity(resultSet, factory.call()));
+					entities.add(mapResultToSingleEntity(resultSet, factory.get()));
 				}
 			}
 
-			stat.close();
+			//stat.close();
 
-			if (getDatabaseService().isAutoCloseConnection()) {
+			/*if (getDatabaseService().isAutoCloseConnection()) {
 				con.close();
-			}
+			}*/
 
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
 			return entities;
