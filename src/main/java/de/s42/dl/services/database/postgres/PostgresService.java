@@ -168,6 +168,13 @@ public class PostgresService extends AbstractService implements DatabaseService
 	}
 
 	@Override
+	public boolean isInTransaction() throws Exception
+	{
+		Connection con = getConnection();
+		return !con.getAutoCommit();
+	}
+
+	@Override
 	public void startTransaction() throws SQLException
 	{
 		Connection con = getConnection();
@@ -184,8 +191,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		Connection con = getConnection();
 		if (!con.getAutoCommit()) {
 			con.commit();
-		}
-		else {
+		} else {
 			log.warn("Commiting without the connection being autocommit=false");
 		}
 		con.setAutoCommit(true);
@@ -197,8 +203,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		Connection con = getConnection();
 		if (!con.getAutoCommit()) {
 			con.rollback();
-		}
-		else {
+		} else {
 			log.warn("Rollbacking without the connection being autocommit=false");
 		}
 		con.setAutoCommit(true);

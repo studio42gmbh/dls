@@ -41,13 +41,15 @@ public interface DatabaseService extends Service
 
 	public void closeAllConnections() throws Exception;
 
-	public boolean isAutoCloseConnection();
+	public boolean isAutoCloseConnection() throws Exception;
 
-	public void setAutoCloseConnection(boolean autoCloseConnection);
+	public void setAutoCloseConnection(boolean autoCloseConnection) throws Exception;
 
-	void startTransaction() throws Exception;
+	public boolean isInTransaction() throws Exception;
 
-	void commitTransaction() throws Exception;
+	public void startTransaction() throws Exception;
 
-	void rollbackTransaction() throws Exception;
+	public void commitTransaction() throws Exception;
+
+	public void rollbackTransaction() throws Exception;
 }
