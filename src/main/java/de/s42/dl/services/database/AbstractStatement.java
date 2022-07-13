@@ -126,45 +126,51 @@ public abstract class AbstractStatement
 		if (parameters.length > 0) {
 			int c = 1;
 			for (Object parameter : parameters) {
-				if (parameter instanceof String) {
-					statement.setString(c, (String) parameter);
-				} else if (parameter instanceof Integer) {
-					statement.setInt(c, (Integer) parameter);
-				} else if (parameter instanceof Float) {
-					statement.setFloat(c, (Float) parameter);
-				} else if (parameter instanceof Boolean) {
-					statement.setBoolean(c, (Boolean) parameter);
-				} else if (parameter instanceof Long) {
-					statement.setLong(c, (Long) parameter);
-				} else if (parameter instanceof Double) {
-					statement.setDouble(c, (Double) parameter);
-					//} else if (parameter instanceof UUID) {
-					//	statement.setObject(c, parameter);
-				} else if (parameter instanceof Class) {
-					statement.setString(c, ((Class) parameter).getName());
-				} else if (parameter instanceof Date) {
 
-					//@todo Is it possible to get rid of NULL_DATE to fix wrongmapping of dates ?
-					if (((Date) parameter).getTime() == -1) {
-						statement.setNull(c, java.sql.Types.DATE);
+				try {
+
+					if (parameter instanceof String) {
+						statement.setString(c, (String) parameter);
+					} else if (parameter instanceof Integer) {
+						statement.setInt(c, (Integer) parameter);
+					} else if (parameter instanceof Float) {
+						statement.setFloat(c, (Float) parameter);
+					} else if (parameter instanceof Boolean) {
+						statement.setBoolean(c, (Boolean) parameter);
+					} else if (parameter instanceof Long) {
+						statement.setLong(c, (Long) parameter);
+					} else if (parameter instanceof Double) {
+						statement.setDouble(c, (Double) parameter);
+						//} else if (parameter instanceof UUID) {
+						//	statement.setObject(c, parameter);
+					} else if (parameter instanceof Class) {
+						statement.setString(c, ((Class) parameter).getName());
+					} else if (parameter instanceof Date) {
+
+						//@todo Is it possible to get rid of NULL_DATE to fix wrongmapping of dates ?
+						if (((Date) parameter).getTime() == -1) {
+							statement.setNull(c, java.sql.Types.DATE);
+						} else {
+							statement.setTimestamp(c, new java.sql.Timestamp(((Date) parameter).getTime()));
+						}
+					} else if (parameter instanceof Map) {
+						statement.setString(c, (new JSONObject((Map) parameter)).toString());
+					} else if (parameter instanceof Enum) {
+						statement.setString(c, parameter.toString());
 					} else {
-						statement.setTimestamp(c, new java.sql.Timestamp(((Date) parameter).getTime()));
+						if (parameter != null) {
+							//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
+							//statement.setString(c, parameter.toString());
+							statement.setObject(c, parameter);
+						} //unknown parameter null - set null string
+						else {
+							statement.setObject(c, null);
+						}
 					}
-				} else if (parameter instanceof Map) {
-					statement.setString(c, (new JSONObject((Map) parameter)).toString());
-				} else if (parameter instanceof Enum) {
-					statement.setString(c, parameter.toString());
-				} else {
-					if (parameter != null) {
-						//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
-						//statement.setString(c, parameter.toString());
-						statement.setObject(c, parameter);
-					} //unknown parameter null - set null string
-					else {
-						statement.setObject(c, null);
-					}
+					c++;
+				} catch (SQLException ex) {
+					throw new SQLException("Error setting parameter " + c + " : " + parameter + " - " + ex.getMessage(), ex);
 				}
-				c++;
 			}
 		}
 	}
@@ -227,7 +233,6 @@ public abstract class AbstractStatement
 			/*if (getDatabaseService().isAutoCloseConnection()) {
 				con.close();
 			}*/
-
 			//log.stopTimer(Log.Level.TRACE, "executeNoResult.durationDbCall", "DB Call duration");
 		} catch (SQLException ex) {
 			throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
@@ -294,7 +299,6 @@ public abstract class AbstractStatement
 			/*if (getDatabaseService().isAutoCloseConnection()) {
 				con.close();
 			}*/
-
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
 			return Optional.ofNullable(entity);
 
@@ -358,7 +362,6 @@ public abstract class AbstractStatement
 			/*if (getDatabaseService().isAutoCloseConnection()) {
 				con.close();
 			}*/
-
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
 			return entities;
 
