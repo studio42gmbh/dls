@@ -45,5 +45,7 @@ public @interface DLMethod
 
 	public boolean userLoggedIn() default false;
 
+	public boolean transactioned() default false;
+	
 	public int ttl() default 0;
 }

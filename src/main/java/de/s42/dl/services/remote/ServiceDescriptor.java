@@ -60,7 +60,6 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 	public ServiceDescriptor(Service service, LocalizationService localizationService)
 	{
 		assert service != null;
-		assert localizationService != null;
 
 		this.service = service;
 		this.localizationService = localizationService;
@@ -121,6 +120,10 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 
 	public String getDescription()
 	{
+		if (localizationService == null) {
+			return "";
+		}
+
 		return localizationService.localize(getName() + ".description");
 	}
 

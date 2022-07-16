@@ -42,6 +42,7 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
+import de.s42.dl.services.database.DatabaseService;
 import de.s42.dl.services.l10n.LocalizationService;
 import de.s42.dl.srv.DLServletException;
 import de.s42.dl.srv.ErrorCode;
@@ -82,6 +83,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 	@AttributeDL(required = false)
 	protected PermissionService permissionService;
+
+	@AttributeDL(required = false)
+	protected DatabaseService databaseService;
 
 	@AttributeDL(required = false)
 	protected LocalizationService localizationService;
@@ -411,7 +415,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		assert service != null;
 		assert method != null;
 
-		if (!isValidatePermissions() || (getPermissionService() == null)) {
+		if (!isValidatePermissions() || (permissionService == null)) {
 			return;
 		}
 
@@ -435,7 +439,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 
 		if (userLoggedIn || !permissions.isEmpty()) {
-			getPermissionService().validate(request, userLoggedIn, permissions);
+			permissionService.validate(request, userLoggedIn, permissions);
 		}
 	}
 
@@ -501,13 +505,32 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		log.debug("Calling", serviceName, methodName);
 
+		// If the method shall be transactioned and the database service is not already in a transaction
+		boolean transaction = method.isTransactioned() & ((databaseService != null) ? !databaseService.isInTransaction() : false);
+
+		if (transaction) {
+			databaseService.startTransaction();
+		}
+
 		try {
-			Object result = method.call(callParams);
+			try {
+				Object result = method.call(callParams);
 
-			sendResponse(response, result, method.getTtl());
-		} catch (InvocationTargetException ex) {
+				if (transaction) {
+					databaseService.commitTransaction();
+				}
 
-			throw ex.getCause();
+				sendResponse(response, result, method.getTtl());
+			} catch (InvocationTargetException ex) {
+
+				throw ex.getCause();
+			}
+
+		} catch (Throwable ex) {
+			if (transaction) {
+				databaseService.rollbackTransaction();
+			}
+			throw ex;
 		}
 	}
 
@@ -609,5 +632,15 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	public void setLocalizationService(LocalizationService localizationService)
 	{
 		this.localizationService = localizationService;
+	}
+
+	public DatabaseService getDatabaseService()
+	{
+		return databaseService;
+	}
+
+	public void setDatabaseService(DatabaseService databaseService)
+	{
+		this.databaseService = databaseService;
 	}
 }

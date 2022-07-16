@@ -55,7 +55,6 @@ public class ParameterDescriptor
 	{
 		assert service != null;
 		assert method != null;
-		assert localizationService != null;
 		assert parameter != null;
 
 		this.service = service;
@@ -126,6 +125,10 @@ public class ParameterDescriptor
 
 	public String getDescription()
 	{
+		if (localizationService == null) {
+			return "";
+		}
+
 		return localizationService.localize(getService().getName() + "." + getMethod().getName() + "." + getName() + ".description");
 	}
 

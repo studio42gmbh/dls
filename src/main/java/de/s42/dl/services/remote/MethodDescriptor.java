@@ -60,7 +60,6 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 	{
 		assert service != null;
 		assert method != null;
-		assert localizationService != null;
 
 		this.service = service;
 		this.method = method;
@@ -116,6 +115,11 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 		return dlMethod.userLoggedIn();
 	}
 
+	public boolean isTransactioned()
+	{
+		return dlMethod.transactioned();
+	}
+
 	public String[] getPermissions()
 	{
 		return dlMethod.permissions();
@@ -124,6 +128,11 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 	public ParameterDescriptor[] getParameters()
 	{
 		return parameters;
+	}
+	
+	public boolean isHasParameters()
+	{
+		return staticParameters.length > 0;
 	}
 
 	public ParameterDescriptor[] getStaticParameters()
@@ -154,6 +163,10 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 
 	public String getDescription()
 	{
+		if (localizationService == null) {
+			return "";
+		}
+
 		return localizationService.localize(getService().getName() + "." + getName() + ".description");
 	}
 

@@ -27,6 +27,8 @@ package de.s42.dl.services.database;
 
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.services.AbstractService;
+import de.s42.log.LogManager;
+import de.s42.log.Logger;
 
 /**
  *
@@ -34,6 +36,14 @@ import de.s42.dl.services.AbstractService;
  */
 public abstract class AbstractDatabaseService extends AbstractService
 {
+
+	protected interface Transactioned<ReturnType>
+	{
+
+		public ReturnType perform() throws Exception;
+	}
+
+	private final static Logger log = LogManager.getLogger(AbstractDatabaseService.class.getName());
 
 	@AttributeDL(required = true)
 	protected DatabaseService databaseService;
@@ -68,6 +78,33 @@ public abstract class AbstractDatabaseService extends AbstractService
 		if (isCreateDatabase()) {
 			dropDatabase();
 			createDatabase();
+		}
+	}
+
+	protected <ReturnType> ReturnType transactioned(Transactioned<ReturnType> func) throws Exception
+	{
+		log.debug("transactioned");
+
+		boolean inTransaction = databaseService.isInTransaction();
+
+		if (!inTransaction) {
+			databaseService.startTransaction();
+		}
+
+		try {
+
+			ReturnType result = func.perform();
+
+			if (!inTransaction) {
+				databaseService.commitTransaction();
+			}
+
+			return result;
+		} catch (Exception ex) {
+			if (!inTransaction) {
+				databaseService.rollbackTransaction();
+			}
+			throw ex;
 		}
 	}
 
