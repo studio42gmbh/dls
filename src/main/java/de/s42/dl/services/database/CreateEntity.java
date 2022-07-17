@@ -13,8 +13,10 @@
 //</editor-fold>
 package de.s42.dl.services.database;
 
+import de.s42.base.sql.SQLHelper;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -62,6 +64,14 @@ public class CreateEntity<EntityType> extends AbstractStatement
 	{
 		log.debug("execute", getName());
 
-		return this.executeQuerySingleEntity(factory.get(), parameters);
+		try {
+			return this.executeQuerySingleEntity(factory.get(), parameters);
+		} catch (SQLException ex) {
+			// Handle unqie violation to be a special error messaged
+			if (SQLHelper.isUniquenessViolated(ex)) {
+				throw new UniqueViolation(ex.getMessage(), ex);
+			}
+			throw ex;
+		}
 	}
 }

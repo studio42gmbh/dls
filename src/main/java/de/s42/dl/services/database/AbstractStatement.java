@@ -302,7 +302,10 @@ public abstract class AbstractStatement
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
 			return Optional.ofNullable(entity);
 
-		} catch (Exception ex) {
+		}catch (SQLException ex) {
+			throw new SQLException("Error in query " + getName() + " - " + ex.getMessage(), ex.getSQLState(), ex);
+		}
+		catch (Exception ex) {
 			throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
 		} finally {
 			if (stat != null) {

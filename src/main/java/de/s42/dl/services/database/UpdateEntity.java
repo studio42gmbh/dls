@@ -14,8 +14,10 @@
 package de.s42.dl.services.database;
 
 import de.s42.base.arrays.ArrayHelper;
+import de.s42.base.sql.SQLHelper;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -63,9 +65,17 @@ public class UpdateEntity<EntityType> extends AbstractStatement
 	public Optional<EntityType> execute(Object match, Object... parameters) throws Exception
 	{
 		log.debug("execute", getName());
-		
-		Object[] params = ArrayHelper.concatenate(parameters, new Object[]{ match });
 
-		return this.executeQuerySingleOrNoEntity(factory.get(), params);
+		Object[] params = ArrayHelper.concatenate(parameters, new Object[]{match});
+
+		try {
+			return this.executeQuerySingleOrNoEntity(factory.get(), params);
+		} catch (SQLException ex) {
+			// Handle unqie violation to be a special error messaged
+			if (SQLHelper.isUniquenessViolated(ex)) {
+				throw new UniqueViolation(ex.getMessage(), ex);
+			}
+			throw ex;
+		}
 	}
 }
