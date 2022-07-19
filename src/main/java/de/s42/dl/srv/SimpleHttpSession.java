@@ -27,6 +27,7 @@ import javax.servlet.http.HttpSessionContext;
  *
  * @author Benjamin Schiller
  */
+@SuppressWarnings("deprecation")
 public class SimpleHttpSession implements HttpSession
 {
 
