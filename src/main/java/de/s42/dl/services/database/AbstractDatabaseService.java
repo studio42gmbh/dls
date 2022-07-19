@@ -81,13 +81,21 @@ public abstract class AbstractDatabaseService extends AbstractService
 		}
 	}
 
+	@SuppressWarnings("UseSpecificCatch")
 	protected <ReturnType> ReturnType transactioned(Transactioned<ReturnType> func) throws Exception
+	{
+		return transactioned(databaseService, func);
+	}
+
+
+	@SuppressWarnings("UseSpecificCatch")
+	public static <ReturnType> ReturnType transactioned(DatabaseService databaseService, Transactioned<ReturnType> func) throws Exception
 	{
 		log.debug("transactioned");
 
-		boolean inTransaction = databaseService.isInTransaction();
+		boolean transaction = !databaseService.isInTransaction();
 
-		if (!inTransaction) {
+		if (transaction) {
 			databaseService.startTransaction();
 		}
 
@@ -95,19 +103,19 @@ public abstract class AbstractDatabaseService extends AbstractService
 
 			ReturnType result = func.perform();
 
-			if (!inTransaction) {
+			if (transaction) {
 				databaseService.commitTransaction();
 			}
 
 			return result;
-		} catch (Exception ex) {
-			if (!inTransaction) {
+		} catch (Throwable ex) {
+			if (transaction) {
 				databaseService.rollbackTransaction();
 			}
 			throw ex;
 		}
-	}
-
+	}	
+	
 	public DatabaseService getDatabaseService()
 	{
 		return databaseService;
