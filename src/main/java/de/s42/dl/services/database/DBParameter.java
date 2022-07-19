@@ -38,6 +38,7 @@ public class DBParameter
 	protected String name;
 	protected Class type;
 	protected String customSQLValue;
+	protected Object defaultValue;
 
 	public DBParameter()
 	{
@@ -49,10 +50,18 @@ public class DBParameter
 		this.type = type;
 	}
 
-	public DBParameter(String name, Class type, String customSQLValue)
+	public DBParameter(String name, Class type, Object defaultValue)
 	{
 		this.name = name;
 		this.type = type;
+		this.defaultValue = defaultValue;
+	}
+
+	public DBParameter(String name, Class type, Object defaultValue, String customSQLValue)
+	{
+		this.name = name;
+		this.type = type;
+		this.defaultValue = defaultValue;
 		this.customSQLValue = customSQLValue;
 	}
 
@@ -106,5 +115,15 @@ public class DBParameter
 	public void setCustomSQLValue(String customSQLValue)
 	{
 		this.customSQLValue = customSQLValue;
+	}
+
+	public Object getDefaultValue()
+	{
+		return defaultValue;
+	}
+
+	public void setDefaultValue(Object defaultValue)
+	{
+		this.defaultValue = defaultValue;
 	}
 }

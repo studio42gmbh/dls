@@ -25,6 +25,13 @@ public class ExecuteStatement extends AbstractStatement
 
 	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
 
+	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	{
+		super();
+		
+		this.databaseService = databaseService;
+	}
+
 	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
 	{
 		super(databaseService, statementResource);
