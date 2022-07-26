@@ -13,6 +13,7 @@
 //</editor-fold>
 package de.s42.dl.services.database;
 
+import de.s42.dl.services.remote.InvalidParameter;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.function.Supplier;
  *
  * @author Benjamin Schiller
  * @param <EntityType>
+ * @param <FilterType>
  */
 public class FindEntities<EntityType, FilterType> extends AbstractStatement
 {
@@ -89,8 +91,12 @@ public class FindEntities<EntityType, FilterType> extends AbstractStatement
 		initStatement(tableName, columnName);
 	}
 
-	private void initStatement(String tableName, String columnName)
+	private void initStatement(String tableName, String columnName) throws InvalidParameter
 	{
+
+		if (hasLimit() && !hasOrderExpression()) {
+			throw new InvalidParameter("If the statement has a limit it needs an order expression");
+		}
 
 		String limitClause = (hasLimit()) ? " LIMIT ? OFFSET ?" : "";
 		String orderByClause = (hasOrderExpression()) ? " ORDER BY " + getOrderExpression() + ((isAscending()) ? "ASC" : "DESC") : "";
