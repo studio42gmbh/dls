@@ -99,7 +99,7 @@ public class FindEntities<EntityType, FilterType> extends AbstractStatement
 		}
 
 		String limitClause = (hasLimit()) ? " LIMIT ? OFFSET ?" : "";
-		String orderByClause = (hasOrderExpression()) ? " ORDER BY " + getOrderExpression() + ((isAscending()) ? "ASC" : "DESC") : "";
+		String orderByClause = (hasOrderExpression()) ? " ORDER BY " + getOrderExpression() + ((isAscending()) ? " ASC" : " DESC") : "";
 
 		this.statement = "SELECT * FROM " + tableName + " WHERE " + columnName + " " + getMatch().clause + " ?" + orderByClause + limitClause + ";";
 	}
