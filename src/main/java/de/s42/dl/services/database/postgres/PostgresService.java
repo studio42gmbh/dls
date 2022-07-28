@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.services.database.postgres;
 
+import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.services.AbstractService;
 import de.s42.dl.services.database.DatabaseService;
 import de.s42.log.LogManager;
@@ -106,6 +107,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 	}
 
 	@Override
+	@AttributeDL(ignore = true)
 	public Connection getConnection() throws SQLException
 	{
 		Thread currentThread = Thread.currentThread();
@@ -162,6 +164,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		return dbCalls.incrementAndGet();
 	}
 
+	@AttributeDL(ignore = true)
 	public int getDbCalls()
 	{
 		return dbCalls.get();

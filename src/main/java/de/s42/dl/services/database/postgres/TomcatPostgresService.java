@@ -46,6 +46,7 @@ public class TomcatPostgresService extends PostgresService
 	@AttributeDL(required = true)
 	protected String resourceName;
 
+	@AttributeDL(ignore = true)
 	protected DataSource dataSource;
 
 	@Override
@@ -58,6 +59,7 @@ public class TomcatPostgresService extends PostgresService
 	}
 
 	@Override
+	@AttributeDL(ignore = true)
 	public Connection getNewConnection() throws SQLException
 	{
 		return dataSource.getConnection();

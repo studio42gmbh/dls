@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.services.database;
 
+import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.services.Service;
 import java.sql.Connection;
 
@@ -37,6 +38,7 @@ public interface DatabaseService extends Service
 
 	void closeConnection(Connection connection) throws Exception;
 
+	@AttributeDL(ignore = true)
 	Connection getConnection() throws Exception;
 
 	public void closeAllConnections() throws Exception;
