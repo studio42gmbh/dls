@@ -42,25 +42,51 @@ public class FileRef
 	private String filePath;
 	private String mimeType;
 	private final Map<String, Object> attributes = Collections.synchronizedMap(new HashMap());
+	protected boolean moveFile;
 
 	public FileRef()
 	{
-		this(null, null, null, null);
 	}
 
+	public FileRef(Path filePath, String mimeType)
+	{
+		this(filePath, mimeType, null, null, false);
+	}
+	
 	public FileRef(String filePath, String mimeType)
 	{
-		this(filePath, mimeType, null, null);
+		this(filePath, mimeType, null, null, false);
 	}
 
+	public FileRef(Path filePath, String mimeType, Map<String, Object> attributes)
+	{
+		this(filePath, mimeType, null, attributes, false);
+	}
+	
 	public FileRef(String filePath, String mimeType, Map<String, Object> attributes)
 	{
-		this(filePath, mimeType, null, attributes);
+		this(filePath, mimeType, null, attributes, false);
 	}
 
-	public FileRef(String filePath, String mimeType, String originalName, Map<String, Object> attributes)
+	public FileRef(String filePath, String mimeType, String originalName, Map<String, Object> attributes, boolean moveFile)
 	{
+		assert filePath != null;
+		
+		this.moveFile = moveFile;
 		this.filePath = filePath;
+		this.mimeType = mimeType;
+		this.originalName = originalName;
+		if (attributes != null) {
+			this.attributes.putAll(attributes);
+		}
+	}
+	
+	public FileRef(Path filePath, String mimeType, String originalName, Map<String, Object> attributes, boolean moveFile)
+	{
+		assert filePath != null;
+		
+		this.moveFile = moveFile;
+		this.filePath = filePath.toAbsolutePath().toString();
 		this.mimeType = mimeType;
 		this.originalName = originalName;
 		if (attributes != null) {
@@ -123,5 +149,15 @@ public class FileRef
 	public void setOriginalName(String originalName)
 	{
 		this.originalName = originalName;
+	}
+
+	public boolean isMoveFile()
+	{
+		return moveFile;
+	}
+
+	public void setMoveFile(boolean moveFile)
+	{
+		this.moveFile = moveFile;
 	}
 }

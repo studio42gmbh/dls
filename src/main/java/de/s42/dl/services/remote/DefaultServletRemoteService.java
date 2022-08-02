@@ -270,7 +270,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 				Map<String, Object> attributes = new HashMap();
 
-				return new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes);
+				// File can be moved as it is a temp file
+				return new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes, true);
 			}
 		}
 
@@ -331,7 +332,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 							FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
 
 							Map<String, Object> attributes = new HashMap();
-							FileRef ref = new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes);
+
+							// File can be moved as it is a temp file
+							FileRef ref = new FileRef(tempFile.getAbsolutePath(), p.getContentType(), p.getSubmittedFileName(), attributes, true);
 
 							requestAsPart = ref;
 						}
