@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @author Benjamin Schiller
  * @param <EntityType>
  */
-public class UpdateEntity<EntityType> extends AbstractStatement
+public class UpdateEntity<EntityType> extends AbstractStatement<EntityType>
 {
 
 	private final static Logger log = LogManager.getLogger(UpdateEntity.class.getName());
@@ -69,7 +69,7 @@ public class UpdateEntity<EntityType> extends AbstractStatement
 		Object[] params = ArrayHelper.concatenate(parameters, new Object[]{match});
 
 		try {
-			return this.executeQuerySingleOrNoEntity(factory.get(), params);
+			return this.executeQuerySingleOrNoEntity(factory, params);
 		} catch (SQLException ex) {
 			// Handle unqie violation to be a special error messaged
 			if (SQLHelper.isUniquenessViolated(ex)) {

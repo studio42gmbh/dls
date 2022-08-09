@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * @author Benjamin Schiller
  * @param <EntityType>
  */
-public class FindEntity<EntityType, IdType> extends AbstractStatement
+public class FindEntity<EntityType, IdType> extends AbstractStatement<EntityType>
 {
 
 	private final static Logger log = LogManager.getLogger(FindEntity.class.getName());
@@ -56,6 +56,6 @@ public class FindEntity<EntityType, IdType> extends AbstractStatement
 
 		assertRequired("id", id);
 
-		return this.executeQuerySingleOrNoEntity(factory.get(), id);
+		return this.executeQuerySingleOrNoEntity(factory, id);
 	}
 }

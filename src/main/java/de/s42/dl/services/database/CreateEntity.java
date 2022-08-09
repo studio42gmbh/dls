@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @author Benjamin Schiller
  * @param <EntityType>
  */
-public class CreateEntity<EntityType> extends AbstractStatement
+public class CreateEntity<EntityType> extends AbstractStatement<EntityType>
 {
 
 	private final static Logger log = LogManager.getLogger(CreateEntity.class.getName());
@@ -65,7 +65,7 @@ public class CreateEntity<EntityType> extends AbstractStatement
 		log.debug("execute", getName());
 
 		try {
-			return this.executeQuerySingleEntity(factory.get(), parameters);
+			return this.executeQuerySingleEntity(factory, parameters);
 		} catch (SQLException ex) {
 			// Handle unqie violation to be a special error messaged
 			if (SQLHelper.isUniquenessViolated(ex)) {

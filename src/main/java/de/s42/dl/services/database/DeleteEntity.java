@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  *
  * @author Benjamin Schiller
  */
-public class DeleteEntity<EntityType, IdType> extends AbstractStatement
+public class DeleteEntity<EntityType, IdType> extends AbstractStatement<EntityType>
 {
 
 	private final static Logger log = LogManager.getLogger(DeleteEntity.class.getName());
@@ -55,6 +55,6 @@ public class DeleteEntity<EntityType, IdType> extends AbstractStatement
 
 		assertRequired("id", id);
 
-		return this.executeQuerySingleOrNoEntity(factory.get(), id);
+		return this.executeQuerySingleOrNoEntity(factory, id);
 	}
 }

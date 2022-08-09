@@ -39,7 +39,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,14 +53,14 @@ import org.json.JSONObject;
 /**
  *
  * @author Benjamin Schiller
+ * @param <ResultType>
+ *
  * @todo AbstractStatement optimize garbage pressure
  */
-public abstract class AbstractStatement
+public abstract class AbstractStatement<ResultType> implements Statement<ResultType>
 {
 
 	private final static Logger log = LogManager.getLogger(AbstractStatement.class.getName());
-
-	protected final static Date NULL_DATE = new Date(-1);
 
 	protected String name;
 
@@ -176,12 +175,12 @@ public abstract class AbstractStatement
 	}
 
 	// @todo AbstractStatement.mapCurrentRowToEntity optimize loading of objects with missing columns / properties
-	protected <T> T mapCurrentRowToEntity(ResultSet result, T fillTarget) throws Exception
+	protected <ResultType> ResultType mapCurrentRowToEntity(ResultSet result, ResultType fillTarget) throws Exception
 	{
 		// Using the Introspector has the advantage of being cached
-		BeanInfo<T> info = BeanHelper.getBeanInfo((Class<T>) fillTarget.getClass());
+		BeanInfo<ResultType> info = BeanHelper.getBeanInfo((Class<ResultType>) fillTarget.getClass());
 
-		for (BeanProperty<T> property : info.getWriteProperties()) {
+		for (BeanProperty<ResultType> property : info.getWriteProperties()) {
 
 			String propertyName = property.getName().toLowerCase();
 			Class paramType = property.getPropertyClass();
@@ -206,12 +205,13 @@ public abstract class AbstractStatement
 		return fillTarget;
 	}
 
-	protected <T> T mapResultToSingleEntity(ResultSet result, T fillTarget) throws Exception
+	protected <ResultType> ResultType mapResultToSingleEntity(ResultSet result, ResultType fillTarget) throws Exception
 	{
 		return mapCurrentRowToEntity(result, fillTarget);
 	}
 
-	protected void executeNoResult(Object... parameters) throws Exception
+	@Override
+	public void executeNoResult(Object... parameters) throws Exception
 	{
 		//log.trace("Called executeNoResult");
 
@@ -257,12 +257,13 @@ public abstract class AbstractStatement
 		}
 	}
 
-	protected <T> T executeQuerySingleEntity(T fillTarget, Object... parameters) throws Exception
+	protected <ResultType> ResultType executeQuerySingleEntity(Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
-		return executeQuerySingleOrNoEntity(fillTarget, parameters).orElseThrow();
+		return executeQuerySingleOrNoEntity(factory, parameters).orElseThrow();
 	}
 
-	protected <T> Optional<T> executeQuerySingleOrNoEntity(T fillTarget, Object... parameters) throws Exception
+	@Override
+	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
 		//log.trace("Called executeQuerySingleEntity");
 
@@ -272,7 +273,7 @@ public abstract class AbstractStatement
 		try {
 			con = getDatabaseService().getConnection();
 
-			stat = con.prepareStatement(getStatement(), Statement.RETURN_GENERATED_KEYS);
+			stat = con.prepareStatement(getStatement(), java.sql.Statement.RETURN_GENERATED_KEYS);
 
 			setParameters(stat, parameters);
 
@@ -285,12 +286,12 @@ public abstract class AbstractStatement
 				resultSet = stat.getGeneratedKeys();
 			}
 
-			T entity = null;
+			ResultType entity = null;
 
 			if (resultSet != null) {
 
 				if (resultSet.next()) {
-					entity = mapResultToSingleEntity(resultSet, fillTarget);
+					entity = mapResultToSingleEntity(resultSet, factory.get());
 				}
 			}
 
@@ -302,10 +303,9 @@ public abstract class AbstractStatement
 			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
 			return Optional.ofNullable(entity);
 
-		}catch (SQLException ex) {
+		} catch (SQLException ex) {
 			throw new SQLException("Error in query " + getName() + " - " + ex.getMessage(), ex.getSQLState(), ex);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
 		} finally {
 			if (stat != null) {
@@ -328,7 +328,8 @@ public abstract class AbstractStatement
 		}
 	}
 
-	protected <T> List<T> executeQueryManyEntities(Supplier<T> factory, Object... parameters) throws Exception
+	@Override
+	public <ResultType> List<ResultType> executeQueryManyEntities(Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
 		//log.trace("Called executeQueryManyEntities");
 
@@ -338,7 +339,7 @@ public abstract class AbstractStatement
 		try {
 			con = getDatabaseService().getConnection();
 
-			stat = con.prepareStatement(getStatement(), Statement.RETURN_GENERATED_KEYS);
+			stat = con.prepareStatement(getStatement(), java.sql.Statement.RETURN_GENERATED_KEYS);
 
 			setParameters(stat, parameters);
 
@@ -351,7 +352,7 @@ public abstract class AbstractStatement
 				resultSet = stat.getGeneratedKeys();
 			}
 
-			List<T> entities = new ArrayList();
+			List<ResultType> entities = new ArrayList();
 
 			if (resultSet != null) {
 
@@ -457,6 +458,7 @@ public abstract class AbstractStatement
 		return new JSONObject(r);
 	}
 
+	@Override
 	public String getName()
 	{
 		return name;
