@@ -20,6 +20,7 @@ import de.s42.dlt.parser.TemplateContext;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -45,13 +46,33 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 		template = DLT.compile(ResourceHelper.getResourceAsString(templateResourceName).orElseThrow());
 	}
 
-	public List<ResultType> execute(TemplateContext context, Object... parameters) throws Exception
+	public List<ResultType> executeMany(TemplateContext context, Object... parameters) throws Exception
 	{
 		// @todo ATTTENTION: THIS is NOT threadsafe ATM
 		setStatement(template.evaluate(context));
 		
-		log.debug("statement", getStatement());		
+		log.debug("executeMany", getStatement());		
 
 		return executeQueryManyEntities(factory, parameters);
 	}
+	
+	public Optional<ResultType> executeOneOrNone(TemplateContext context, Object... parameters) throws Exception
+	{
+		// @todo ATTTENTION: THIS is NOT threadsafe ATM
+		setStatement(template.evaluate(context));
+		
+		log.debug("executeOneOrNone", getStatement());		
+
+		return executeQuerySingleOrNoEntity(factory, parameters);
+	}	
+	
+	public ResultType executeOne(TemplateContext context, Object... parameters) throws Exception
+	{
+		// @todo ATTTENTION: THIS is NOT threadsafe ATM
+		setStatement(template.evaluate(context));
+		
+		log.debug("executeOne", getStatement());		
+
+		return executeQuerySingleEntity(factory, parameters);
+	}	
 }
