@@ -23,41 +23,34 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database;
+package de.s42.dl.services.database.query;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
+import de.s42.dl.services.database.DatabaseMatchType;
 
 /**
  *
- * @author Benjamin Schiller
+ * @author Benjamin.Schiller
  */
-public class ExecuteStatement extends AbstractStatement
+public enum QueryDimensionMatchType
 {
-
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
-
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	like(DatabaseMatchType.iLike),
+	notLike(DatabaseMatchType.notILike),
+	less(DatabaseMatchType.less),
+	lessEqual(DatabaseMatchType.lessEqual),
+	greater(DatabaseMatchType.greater),
+	greaterEqual(DatabaseMatchType.greaterEqual),
+	equal(DatabaseMatchType.equal),
+	notEqual(DatabaseMatchType.notEqual);
+	
+	public final DatabaseMatchType dbMatch;
+	
+	public DatabaseMatchType getDbMatch()
 	{
-		super();
-		
-		this.databaseService = databaseService;
+		return dbMatch;
 	}
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
+	QueryDimensionMatchType(DatabaseMatchType dbMatch)
 	{
-		super(databaseService, statementResource);
-	}
-
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
-	{
-		super(databaseService, statementResource, name);
-	}
-
-	public void execute() throws Exception
-	{
-		log.debug("execute", getName());
-
-		executeNoResult();
+		this.dbMatch = dbMatch;
 	}
 }

@@ -38,6 +38,7 @@ module de.sft.dls
 	exports de.s42.dl.services.content; 
 	exports de.s42.dl.services.content.dlt; 
 	exports de.s42.dl.services.database; 
+	exports de.s42.dl.services.database.query; 
 	exports de.s42.dl.services.database.postgres; 
 	exports de.s42.dl.services.l10n; 
 	exports de.s42.dl.services.permission; 

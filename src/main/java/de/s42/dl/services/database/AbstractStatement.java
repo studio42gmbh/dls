@@ -209,9 +209,15 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	{
 		return mapCurrentRowToEntity(result, fillTarget);
 	}
-
+	
 	@Override
 	public void executeNoResult(Object... parameters) throws Exception
+	{
+		executeNoResult(statement, parameters);
+	}
+	
+	@Override
+	public void executeNoResult(String statement, Object... parameters) throws Exception
 	{
 		//log.trace("Called executeNoResult");
 
@@ -221,7 +227,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		try {
 			con = getDatabaseService().getConnection();
 
-			stat = con.prepareStatement(getStatement());
+			stat = con.prepareStatement(statement);
 
 			setParameters(stat, parameters);
 
@@ -257,13 +263,27 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		}
 	}
 
-	protected <ResultType> ResultType executeQuerySingleEntity(Supplier<ResultType> factory, Object... parameters) throws Exception
+	@Override
+	public <ResultType> ResultType executeQuerySingleEntity(Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
-		return executeQuerySingleOrNoEntity(factory, parameters).orElseThrow();
+		return executeQuerySingleEntity(getStatement(), factory, parameters);
+	}
+	
+	@Override
+	public <ResultType> ResultType executeQuerySingleEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
+	{
+		return executeQuerySingleOrNoEntity(statement, factory, parameters).orElseThrow();
 	}
 
+	
 	@Override
 	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(Supplier<ResultType> factory, Object... parameters) throws Exception
+	{
+		return executeQuerySingleOrNoEntity(getStatement(), factory, parameters);
+	}
+	
+	@Override
+	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
 		//log.trace("Called executeQuerySingleEntity");
 
@@ -273,7 +293,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		try {
 			con = getDatabaseService().getConnection();
 
-			stat = con.prepareStatement(getStatement(), java.sql.Statement.RETURN_GENERATED_KEYS);
+			stat = con.prepareStatement(statement, java.sql.Statement.RETURN_GENERATED_KEYS);
 
 			setParameters(stat, parameters);
 
@@ -331,6 +351,12 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	@Override
 	public <ResultType> List<ResultType> executeQueryManyEntities(Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
+		return executeQueryManyEntities(statement, factory, parameters);
+	}
+	
+	@Override
+	public <ResultType> List<ResultType> executeQueryManyEntities(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
+	{
 		//log.trace("Called executeQueryManyEntities");
 
 		//log.startTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall");
@@ -339,7 +365,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		try {
 			con = getDatabaseService().getConnection();
 
-			stat = con.prepareStatement(getStatement(), java.sql.Statement.RETURN_GENERATED_KEYS);
+			stat = con.prepareStatement(statement, java.sql.Statement.RETURN_GENERATED_KEYS);
 
 			setParameters(stat, parameters);
 

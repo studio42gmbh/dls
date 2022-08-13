@@ -23,41 +23,32 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database;
+package de.s42.dl.services.database.query;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
+import de.s42.dl.DLAttribute.AttributeDL;
+import java.util.function.Supplier;
 
 /**
  *
- * @author Benjamin Schiller
+ * @author Benjamin.Schiller
  */
-public class ExecuteStatement extends AbstractStatement
+public class TotalCountResult
 {
 
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	public final static Supplier<TotalCountResult> FACTORY = () -> {
+		return new TotalCountResult();
+	};
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	@AttributeDL(required = true)
+	protected int totalCount;
+
+	public int getTotalCount()
 	{
-		super();
-		
-		this.databaseService = databaseService;
+		return totalCount;
 	}
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
+	public void setTotalCount(int totalCount)
 	{
-		super(databaseService, statementResource);
-	}
-
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
-	{
-		super(databaseService, statementResource, name);
-	}
-
-	public void execute() throws Exception
-	{
-		log.debug("execute", getName());
-
-		executeNoResult();
+		this.totalCount = totalCount;
 	}
 }

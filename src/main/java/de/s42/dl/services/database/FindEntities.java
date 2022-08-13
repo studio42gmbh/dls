@@ -1,14 +1,26 @@
-// <editor-fold desc="The Jenomics License" defaultstate="collapsed">
+// <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
- * Copyright Jenomics GmbH 2022. All rights reserved.
+ * The MIT License
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
  * 
- * For details to the License read https://www.jenomics.de/license
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 //</editor-fold>
 package de.s42.dl.services.database;
@@ -30,37 +42,13 @@ public class FindEntities<EntityType, FilterType> extends AbstractStatement
 
 	public static final int DEFAULT_LIMIT = 1000;
 
-	public enum MatchType
-	{
-		like("LIKE"),
-		notLike("NOT LIKE"),
-		similar("SIMILAR TO"),
-		notSimilar("NOT SIMILAR TO"),
-		regex("~"),
-		iLike("ILIKE"),
-		notILike("NOT ILIKE"),
-		less("<"),
-		lessEqual("<="),
-		greater(">"),
-		greaterEqual(">="),
-		equal("="),
-		notEqual("!=");
-
-		public final String clause;
-
-		MatchType(String clause)
-		{
-			this.clause = clause;
-		}
-	}
-
 	private final static Logger log = LogManager.getLogger(FindEntities.class.getName());
 
 	protected final Supplier<EntityType> factory;
 
 	protected final boolean limit;
 
-	protected final MatchType match;
+	protected final DatabaseMatchType match;
 
 	protected final String orderExpression;
 
@@ -68,10 +56,10 @@ public class FindEntities<EntityType, FilterType> extends AbstractStatement
 
 	public FindEntities(DatabaseService databaseService, Supplier<EntityType> factory, String tableName, String columnName, String name) throws Exception
 	{
-		this(databaseService, factory, tableName, columnName, name, MatchType.iLike, false, null, true);
+		this(databaseService, factory, tableName, columnName, name, DatabaseMatchType.iLike, false, null, true);
 	}
 
-	public FindEntities(DatabaseService databaseService, Supplier<EntityType> factory, String tableName, String columnName, String name, MatchType match, boolean limit, String orderExpression, boolean ascending) throws Exception
+	public FindEntities(DatabaseService databaseService, Supplier<EntityType> factory, String tableName, String columnName, String name, DatabaseMatchType match, boolean limit, String orderExpression, boolean ascending) throws Exception
 	{
 		assert databaseService != null;
 		assert factory != null;
@@ -128,7 +116,7 @@ public class FindEntities<EntityType, FilterType> extends AbstractStatement
 		return limit;
 	}
 
-	public MatchType getMatch()
+	public DatabaseMatchType getMatch()
 	{
 		return match;
 	}

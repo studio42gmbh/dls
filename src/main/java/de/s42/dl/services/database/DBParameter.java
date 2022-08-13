@@ -37,7 +37,7 @@ public class DBParameter
 
 	protected String name;
 	protected Class type;
-	protected String customSQLValue;
+	protected String customSqlValue;
 	protected Object defaultValue;
 
 	public DBParameter()
@@ -62,7 +62,7 @@ public class DBParameter
 		this.name = name;
 		this.type = type;
 		this.defaultValue = defaultValue;
-		this.customSQLValue = customSQLValue;
+		this.customSqlValue = customSQLValue;
 	}
 
 	public String getName()
@@ -85,15 +85,15 @@ public class DBParameter
 		this.type = type;
 	}
 
-	public String getSQLName()
+	public String getSqlName()
 	{
 		return name.toLowerCase();
 	}
 
-	public String getSQLValue()
+	public String getSqlValue()
 	{
-		if (customSQLValue != null) {
-			return customSQLValue;
+		if (customSqlValue != null) {
+			return customSqlValue;
 		}
 
 		if (UUID.class.isAssignableFrom(type)) {
@@ -107,14 +107,14 @@ public class DBParameter
 		return "?";
 	}
 
-	public String getCustomSQLValue()
+	public String getCustomSqlValue()
 	{
-		return customSQLValue;
+		return customSqlValue;
 	}
 
-	public void setCustomSQLValue(String customSQLValue)
+	public void setCustomSqlValue(String customSqlValue)
 	{
-		this.customSQLValue = customSQLValue;
+		this.customSqlValue = customSqlValue;
 	}
 
 	public Object getDefaultValue()

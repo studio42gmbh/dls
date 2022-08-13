@@ -23,41 +23,22 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database;
+package de.s42.dl.services.database.query;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
+import java.util.List;
 
 /**
  *
- * @author Benjamin Schiller
+ * @author Benjamin.Schiller
+ * @param <ResultType>
  */
-public class ExecuteStatement extends AbstractStatement
+public interface QueryResult<ResultType>
 {
+	public int getTotalCount();
 
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	public int getLimit();
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
-	{
-		super();
+	public int getOffset();
 		
-		this.databaseService = databaseService;
-	}
-
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
-	{
-		super(databaseService, statementResource);
-	}
-
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
-	{
-		super(databaseService, statementResource, name);
-	}
-
-	public void execute() throws Exception
-	{
-		log.debug("execute", getName());
-
-		executeNoResult();
-	}
+	public List<ResultType> getResult();
 }

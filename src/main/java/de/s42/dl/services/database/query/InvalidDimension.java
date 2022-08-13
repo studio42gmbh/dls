@@ -23,41 +23,43 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database;
+package de.s42.dl.services.database.query;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
+import de.s42.dl.srv.DLServletException;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class ExecuteStatement extends AbstractStatement
+public class InvalidDimension extends DLServletException
 {
 
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	public final static String DEFAULT_MESSAGE = "The given dimension is invalid";
+	public final static String ERROR_CODE = "INVALID_DIMENSION";
+	public final static int HTTP_STATUS = 400;
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	public InvalidDimension()
 	{
-		super();
-		
-		this.databaseService = databaseService;
+		super(DEFAULT_MESSAGE, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
+	public InvalidDimension(String msg)
 	{
-		super(databaseService, statementResource);
+		super(msg, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
+	public InvalidDimension(Throwable cause)
 	{
-		super(databaseService, statementResource, name);
+		super(DEFAULT_MESSAGE, cause, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public void execute() throws Exception
+	public InvalidDimension(String msg, Throwable cause)
 	{
-		log.debug("execute", getName());
+		super(msg, cause, ERROR_CODE, HTTP_STATUS);
+	}
 
-		executeNoResult();
+	public InvalidDimension(QueryDimension dimension)
+	{
+		super("Dimension " + dimension.getName() + " is not contained", ERROR_CODE, HTTP_STATUS);
 	}
 }

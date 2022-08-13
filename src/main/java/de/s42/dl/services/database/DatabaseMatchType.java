@@ -25,39 +25,35 @@
 //</editor-fold>
 package de.s42.dl.services.database;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
-
 /**
  *
- * @author Benjamin Schiller
+ * @author Benjamin.Schiller
  */
-public class ExecuteStatement extends AbstractStatement
+public enum DatabaseMatchType
 {
+	like("LIKE"),
+	notLike("NOT LIKE"),
+	similar("SIMILAR TO"),
+	notSimilar("NOT SIMILAR TO"),
+	regex("~"),
+	iLike("ILIKE"),
+	notILike("NOT ILIKE"),
+	less("<"),
+	lessEqual("<="),
+	greater(">"),
+	greaterEqual(">="),
+	equal("="),
+	notEqual("!=");
 
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	public final String clause;
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	public String getClause()
 	{
-		super();
-		
-		this.databaseService = databaseService;
+		return clause;
 	}
-
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
+	
+	DatabaseMatchType(String clause)
 	{
-		super(databaseService, statementResource);
-	}
-
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
-	{
-		super(databaseService, statementResource, name);
-	}
-
-	public void execute() throws Exception
-	{
-		log.debug("execute", getName());
-
-		executeNoResult();
+		this.clause = clause;
 	}
 }

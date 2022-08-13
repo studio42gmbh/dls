@@ -42,9 +42,19 @@ public interface Statement<ResultType>
 
 	public void executeNoResult(Object... parameters) throws Exception;
 	
+	public void executeNoResult(String statement, Object... parameters) throws Exception;
+	
+	public <ResultType> ResultType executeQuerySingleEntity(Supplier<ResultType> factory, Object... parameters) throws Exception;
+	
+	public <ResultType> ResultType executeQuerySingleEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception;
+		
 	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(Supplier<ResultType> factory, Object... parameters) throws Exception;
+	
+	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception;
 	
 	public <ResultType> List<ResultType> executeQueryManyEntities(Supplier<ResultType> factory, Object... parameters) throws Exception;
 	
+	public <ResultType> List<ResultType> executeQueryManyEntities(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception;
+
 	public String getName();
 }

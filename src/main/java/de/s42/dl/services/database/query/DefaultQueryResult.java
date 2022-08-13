@@ -23,41 +23,79 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database;
+package de.s42.dl.services.database.query;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
+import de.s42.base.strings.StringHelper;
+import de.s42.dl.DLAttribute.AttributeDL;
+import java.util.List;
 
 /**
  *
- * @author Benjamin Schiller
+ * @author Benjamin.Schiller
+ * @param <ResultType>
  */
-public class ExecuteStatement extends AbstractStatement
+public class DefaultQueryResult<ResultType> implements QueryResult<ResultType>
 {
 
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	@AttributeDL(required = false, defaultValue = "-1")
+	protected int totalCount = -1;
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	@AttributeDL(required = true)
+	protected List<ResultType> result;
+
+	@AttributeDL(required = false, defaultValue = "-1")
+	protected int limit = -1;
+
+	@AttributeDL(required = false, defaultValue = "0")
+	protected int offset = 0;
+
+	@Override
+	public List<ResultType> getResult()
 	{
-		super();
-		
-		this.databaseService = databaseService;
+		return result;
 	}
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
+	public void setResult(List<ResultType> result)
 	{
-		super(databaseService, statementResource);
+		this.result = result;
 	}
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
+	@Override
+	public String toString()
 	{
-		super(databaseService, statementResource, name);
+		return StringHelper.toString(this);
 	}
 
-	public void execute() throws Exception
+	@Override
+	public int getTotalCount()
 	{
-		log.debug("execute", getName());
+		return totalCount;
+	}
 
-		executeNoResult();
+	public void setTotalCount(int totalCount)
+	{
+		this.totalCount = totalCount;
+	}
+
+	@Override
+	public int getLimit()
+	{
+		return limit;
+	}
+
+	public void setLimit(int limit)
+	{
+		this.limit = limit;
+	}
+
+	@Override
+	public int getOffset()
+	{
+		return offset;
+	}
+
+	public void setOffset(int offset)
+	{
+		this.offset = offset;
 	}
 }

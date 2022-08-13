@@ -23,41 +23,42 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database;
+package de.s42.dl.services.database.query;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  *
- * @author Benjamin Schiller
+ * @author Benjamin.Schiller
  */
-public class ExecuteStatement extends AbstractStatement
+public interface Query
 {
 
-	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	public Set<QueryDimension> getAllDimensions();
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
-	{
-		super();
-		
-		this.databaseService = databaseService;
-	}
+	public Optional<QueryDimension> getDimension(String name);
+	
+	public boolean hasDimensionValue(String name);
+	
+	public boolean hasDimensionValue(QueryDimension dimension);
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
-	{
-		super(databaseService, statementResource);
-	}
+	public boolean isAvailableDimension(String name);
 
-	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
-	{
-		super(databaseService, statementResource, name);
-	}
+	public boolean isAvailableDimension(QueryDimension dimension);
 
-	public void execute() throws Exception
-	{
-		log.debug("execute", getName());
+	public <ReturnType> Optional<ReturnType> getDimensionValue(String name);
 
-		executeNoResult();
-	}
+	public <ReturnType> Optional<ReturnType> getDimensionValue(QueryDimension dimension);
+	
+	public boolean isWithTotalCount();
+
+	public int getLimit();
+
+	public int getOffset();
+
+	// @todo how to improve ordering to allow more complex orderings like multiple ordering etc.
+	public String getOrderBy();
+
+	public boolean isAscending();
 }

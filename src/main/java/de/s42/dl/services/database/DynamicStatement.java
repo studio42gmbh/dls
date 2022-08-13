@@ -1,14 +1,26 @@
-// <editor-fold desc="The Jenomics License" defaultstate="collapsed">
+// <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
- * Copyright Jenomics GmbH 2022. All rights reserved.
+ * The MIT License
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
  * 
- * For details to the License read https://www.jenomics.de/license
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 //</editor-fold>
 package de.s42.dl.services.database;
@@ -41,7 +53,7 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 		super();
 
 		this.databaseService = databaseService;
-		this.factory = factory;		
+		this.factory = factory;
 
 		template = DLT.compile(ResourceHelper.getResourceAsString(templateResourceName).orElseThrow());
 	}
@@ -49,30 +61,30 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 	public List<ResultType> executeMany(TemplateContext context, Object... parameters) throws Exception
 	{
 		// @todo ATTTENTION: THIS is NOT threadsafe ATM
-		setStatement(template.evaluate(context));
-		
-		log.debug("executeMany", getStatement());		
+		String stat = template.evaluate(context);
 
-		return executeQueryManyEntities(factory, parameters);
+		log.debug("executeMany", stat);
+
+		return executeQueryManyEntities(stat, factory, parameters);
 	}
-	
+
 	public Optional<ResultType> executeOneOrNone(TemplateContext context, Object... parameters) throws Exception
 	{
 		// @todo ATTTENTION: THIS is NOT threadsafe ATM
-		setStatement(template.evaluate(context));
-		
-		log.debug("executeOneOrNone", getStatement());		
+		String stat = template.evaluate(context);
 
-		return executeQuerySingleOrNoEntity(factory, parameters);
-	}	
-	
+		log.debug("executeOneOrNone", stat);
+
+		return executeQuerySingleOrNoEntity(stat, factory, parameters);
+	}
+
 	public ResultType executeOne(TemplateContext context, Object... parameters) throws Exception
 	{
 		// @todo ATTTENTION: THIS is NOT threadsafe ATM
-		setStatement(template.evaluate(context));
-		
-		log.debug("executeOne", getStatement());		
+		String stat = template.evaluate(context);
 
-		return executeQuerySingleEntity(factory, parameters);
-	}	
+		log.debug("executeOne", stat);
+
+		return executeQuerySingleEntity(stat, factory, parameters);
+	}
 }
