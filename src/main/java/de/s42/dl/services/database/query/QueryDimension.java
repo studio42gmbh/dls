@@ -29,8 +29,10 @@ import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  *
@@ -43,12 +45,18 @@ public class QueryDimension
 
 	@AttributeDL(required = true)
 	protected Class type;
-	
+
 	@AttributeDL(required = false, defaultValue = "equal")
 	protected QueryDimensionMatchType matchType = QueryDimensionMatchType.equal;
-	
+
 	@AttributeDL(required = false)
 	protected Map<String, Object> hints = new HashMap<>();
+
+	@AttributeDL(required = false)
+	protected Set<QueryDimension> requiredDimensions = new HashSet<>();
+
+	@AttributeDL(required = false)
+	protected Set<QueryDimension> exclusiveDimensions = new HashSet<>();
 
 	public QueryDimension()
 	{
@@ -57,7 +65,20 @@ public class QueryDimension
 
 	public QueryDimension(String name, Class type, QueryDimensionMatchType matchType, Map<String, Object> hints)
 	{
+		this(name, type, matchType, hints, null, null);
+	}
+
+	public QueryDimension(
+		String name,
+		Class type,
+		QueryDimensionMatchType matchType,
+		Map<String, Object> hints,
+		Set<QueryDimension> requiredDimensions,
+		Set<QueryDimension> exclusiveDimensions
+	)
+	{
 		assert name != null;
+		assert matchType != null;
 		assert type != null;
 
 		this.name = name;
@@ -66,6 +87,14 @@ public class QueryDimension
 
 		if (hints != null) {
 			this.hints.putAll(hints);
+		}
+
+		if (requiredDimensions != null) {
+			this.requiredDimensions.addAll(requiredDimensions);
+		}
+
+		if (exclusiveDimensions != null) {
+			this.exclusiveDimensions.addAll(exclusiveDimensions);
 		}
 	}
 
@@ -142,5 +171,33 @@ public class QueryDimension
 	public void setMatchType(QueryDimensionMatchType matchType)
 	{
 		this.matchType = matchType;
+	}
+
+	public Set<QueryDimension> getRequiredDimensions()
+	{
+		return Collections.unmodifiableSet(requiredDimensions);
+	}
+
+	public void setRequiredDimensions(Set<QueryDimension> requiredDimensions)
+	{
+		this.requiredDimensions.clear();
+
+		if (requiredDimensions != null) {
+			this.requiredDimensions.addAll(requiredDimensions);
+		}
+	}
+
+	public Set<QueryDimension> getExclusiveDimensions()
+	{
+		return Collections.unmodifiableSet(exclusiveDimensions);
+	}
+
+	public void setExclusiveDimensions(Set<QueryDimension> exclusiveDimensions)
+	{
+		this.exclusiveDimensions.clear();
+
+		if (exclusiveDimensions != null) {
+			this.exclusiveDimensions.addAll(exclusiveDimensions);
+		}
 	}
 }

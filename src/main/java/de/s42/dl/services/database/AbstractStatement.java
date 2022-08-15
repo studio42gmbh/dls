@@ -40,6 +40,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -163,7 +164,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 							statement.setObject(c, parameter);
 						} //unknown parameter null - set null string
 						else {
-							statement.setObject(c, null);
+							statement.setNull(c, Types.NULL);
 						}
 					}
 					c++;

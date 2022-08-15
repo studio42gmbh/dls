@@ -60,7 +60,6 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 
 	public List<ResultType> executeMany(TemplateContext context, Object... parameters) throws Exception
 	{
-		// @todo ATTTENTION: THIS is NOT threadsafe ATM
 		String stat = template.evaluate(context);
 
 		log.debug("executeMany", stat);
@@ -70,7 +69,6 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 
 	public Optional<ResultType> executeOneOrNone(TemplateContext context, Object... parameters) throws Exception
 	{
-		// @todo ATTTENTION: THIS is NOT threadsafe ATM
 		String stat = template.evaluate(context);
 
 		log.debug("executeOneOrNone", stat);
@@ -80,11 +78,19 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 
 	public ResultType executeOne(TemplateContext context, Object... parameters) throws Exception
 	{
-		// @todo ATTTENTION: THIS is NOT threadsafe ATM
 		String stat = template.evaluate(context);
 
 		log.debug("executeOne", stat);
 
 		return executeQuerySingleEntity(stat, factory, parameters);
 	}
+	
+	public void execute(TemplateContext context, Object... parameters) throws Exception
+	{
+		String stat = template.evaluate(context);
+
+		log.debug("execute", stat);
+
+		executeNoResult(stat, parameters);
+	}	
 }

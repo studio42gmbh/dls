@@ -27,21 +27,34 @@ package de.s42.dl.services.database;
 
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  *
  * @author Benjamin Schiller
+ * @param <ResultType>
  */
-public class ExecuteStatement extends AbstractStatement
+public class ExecuteStatement<ResultType> extends AbstractStatement<ResultType>
 {
 
 	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+	protected Supplier<ResultType> factory;
 
 	protected ExecuteStatement(DatabaseService databaseService) throws Exception
 	{
 		super();
-		
+
 		this.databaseService = databaseService;
+	}
+
+	protected ExecuteStatement(DatabaseService databaseService, Supplier<ResultType> factory) throws Exception
+	{
+		super();
+
+		this.databaseService = databaseService;
+		this.factory = factory;
 	}
 
 	public ExecuteStatement(DatabaseService databaseService, String statementResource) throws Exception
@@ -49,15 +62,48 @@ public class ExecuteStatement extends AbstractStatement
 		super(databaseService, statementResource);
 	}
 
+	public ExecuteStatement(DatabaseService databaseService, String statementResource, Supplier<ResultType> factory) throws Exception
+	{
+		super(databaseService, statementResource);
+
+		this.factory = factory;
+	}
+
 	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name) throws Exception
 	{
 		super(databaseService, statementResource, name);
 	}
 
-	public void execute() throws Exception
+	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name, Supplier<ResultType> factory) throws Exception
 	{
-		log.debug("execute", getName());
+		super(databaseService, statementResource, name);
 
-		executeNoResult();
+		this.factory = factory;
+	}
+
+	public List<ResultType> executeMany(Object... parameters) throws Exception
+	{
+		assert factory != null;
+
+		return executeQueryManyEntities(factory, parameters);
+	}
+
+	public Optional<ResultType> executeOneOrNone(Object... parameters) throws Exception
+	{
+		assert factory != null;
+
+		return executeQuerySingleOrNoEntity(factory, parameters);
+	}
+
+	public ResultType executeOne(Object... parameters) throws Exception
+	{
+		assert factory != null;
+
+		return executeQuerySingleEntity(factory, parameters);
+	}
+
+	public void execute(Object... parameters) throws Exception
+	{
+		executeNoResult(parameters);
 	}
 }
