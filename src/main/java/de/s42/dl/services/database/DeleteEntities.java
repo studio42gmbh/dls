@@ -23,24 +23,44 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services.database.query;
+package de.s42.dl.services.database;
 
-import java.util.List;
+import de.s42.log.LogManager;
+import de.s42.log.Logger;
 
 /**
  *
- * @author Benjamin.Schiller
- * @param <ResultType>
+ * @author Benjamin Schiller
  */
-public interface QueryResult<ResultType>
+public class DeleteEntities<MatchType> extends AbstractStatement
 {
-	public int getTotalCount();
 
-	public int getLimit();
+	private final static Logger log = LogManager.getLogger(DeleteEntities.class.getName());
 
-	public int getOffset();
-	
-	public boolean isEmpty();
-			
-	public List<ResultType> getResult();
+	public DeleteEntities(DatabaseService databaseService, String tableName, String columnName, String name) throws Exception
+	{
+		assert databaseService != null;
+		assert name != null;
+		assert tableName != null;
+		assert columnName != null;
+
+		this.databaseService = databaseService;
+		this.name = name;
+
+		initStatement(tableName, columnName);
+	}
+
+	private void initStatement(String tableName, String columnName)
+	{
+		this.statement = "DELETE FROM " + tableName + " WHERE " + columnName + " = ?;";
+	}
+
+	public void execute(MatchType match) throws Exception
+	{
+		log.debug("execute", getName());
+
+		assertRequired("match", match);
+
+		this.executeNoResult(match);
+	}
 }

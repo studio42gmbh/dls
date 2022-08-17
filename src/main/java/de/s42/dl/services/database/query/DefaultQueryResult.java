@@ -50,6 +50,12 @@ public class DefaultQueryResult<ResultType> implements QueryResult<ResultType>
 	protected int offset = 0;
 
 	@Override
+	public boolean isEmpty()
+	{
+		return (result == null) || result.isEmpty();
+	}
+
+	@Override
 	public List<ResultType> getResult()
 	{
 		return result;
