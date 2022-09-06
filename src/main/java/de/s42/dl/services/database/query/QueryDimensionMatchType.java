@@ -35,6 +35,7 @@ public enum QueryDimensionMatchType
 {
 	like(DatabaseMatchType.iLike),
 	notLike(DatabaseMatchType.notILike),
+	regex(DatabaseMatchType.regex),
 	less(DatabaseMatchType.less),
 	lessEqual(DatabaseMatchType.lessEqual),
 	greater(DatabaseMatchType.greater),
