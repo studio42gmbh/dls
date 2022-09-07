@@ -46,6 +46,9 @@ public class QueryDimension
 	@AttributeDL(required = true)
 	protected Class type;
 
+	@AttributeDL(required = false, defaultValue = "false")
+	protected boolean required = false;
+
 	@AttributeDL(required = false, defaultValue = "equal")
 	protected QueryDimensionMatchType matchType = QueryDimensionMatchType.equal;
 
@@ -53,10 +56,10 @@ public class QueryDimension
 	protected Map<String, Object> hints = new HashMap<>();
 
 	@AttributeDL(required = false)
-	protected Set<QueryDimension> requiredDimensions = new HashSet<>();
+	protected Set<String> requiredDimensions = new HashSet<>();
 
 	@AttributeDL(required = false)
-	protected Set<QueryDimension> exclusiveDimensions = new HashSet<>();
+	protected Set<String> exclusiveDimensions = new HashSet<>();
 
 	public QueryDimension()
 	{
@@ -73,8 +76,8 @@ public class QueryDimension
 		Class type,
 		QueryDimensionMatchType matchType,
 		Map<String, Object> hints,
-		Set<QueryDimension> requiredDimensions,
-		Set<QueryDimension> exclusiveDimensions
+		Set<String> requiredDimensions,
+		Set<String> exclusiveDimensions
 	)
 	{
 		assert name != null;
@@ -173,12 +176,12 @@ public class QueryDimension
 		this.matchType = matchType;
 	}
 
-	public Set<QueryDimension> getRequiredDimensions()
+	public Set<String> getRequiredDimensions()
 	{
 		return Collections.unmodifiableSet(requiredDimensions);
 	}
 
-	public void setRequiredDimensions(Set<QueryDimension> requiredDimensions)
+	public void setRequiredDimensions(Set<String> requiredDimensions)
 	{
 		this.requiredDimensions.clear();
 
@@ -187,17 +190,37 @@ public class QueryDimension
 		}
 	}
 
-	public Set<QueryDimension> getExclusiveDimensions()
+	public Set<String> getExclusiveDimensions()
 	{
 		return Collections.unmodifiableSet(exclusiveDimensions);
 	}
 
-	public void setExclusiveDimensions(Set<QueryDimension> exclusiveDimensions)
+	public void setExclusiveDimensions(Set<String> exclusiveDimensions)
 	{
 		this.exclusiveDimensions.clear();
 
 		if (exclusiveDimensions != null) {
 			this.exclusiveDimensions.addAll(exclusiveDimensions);
 		}
+	}
+
+	public void addExclusiveDimension(String exclusiveDimension)
+	{
+		this.exclusiveDimensions.add(exclusiveDimension);
+	}
+
+	public void addRequiredDimension(String requiredDimension)
+	{
+		this.requiredDimensions.add(requiredDimension);
+	}
+
+	public boolean isRequired()
+	{
+		return required;
+	}
+
+	public void setRequired(boolean required)
+	{
+		this.required = required;
 	}
 }

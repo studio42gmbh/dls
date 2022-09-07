@@ -57,12 +57,19 @@ public abstract class AbstractQuery<QueryType extends AbstractQuery> implements 
 
 	@AttributeDL(required = false)
 	protected String orderBy;
-
-	public AbstractQuery()
+	
+	protected static void exclusiveDimensions(QueryDimension dimension1, QueryDimension dimension2)
 	{
-
+		dimension1.addExclusiveDimension(dimension2.getName());
+		dimension2.addExclusiveDimension(dimension1.getName());
 	}
 
+	protected static void requiredDimensions(QueryDimension dimension1, QueryDimension dimension2)
+	{
+		dimension1.addRequiredDimension(dimension2.getName());
+		dimension2.addRequiredDimension(dimension1.getName());
+	}
+	
 	protected AbstractQuery(String defaultOrderBy)
 	{
 		assert defaultOrderBy != null;
@@ -70,12 +77,13 @@ public abstract class AbstractQuery<QueryType extends AbstractQuery> implements 
 		orderBy = defaultOrderBy;
 	}
 
-	protected AbstractQuery(Set<QueryDimension> dimensions, Map<String, Object> query, String defaultOrderBy) throws InvalidDimension
+	protected AbstractQuery(Set<QueryDimension> dimensions, Map<String, Object> query, String defaultOrderBy) throws InvalidDimension, ExclusiveDimensionPresent, RequiredDimensionMissing
 	{
 		init(dimensions, query, defaultOrderBy);
 	}
 
-	private void init(Set<QueryDimension> dimensions, Map<String, Object> query, String defaultOrderBy) throws InvalidDimension
+	@SuppressWarnings("ConvertToStringSwitch")
+	private void init(Set<QueryDimension> dimensions, Map<String, Object> query, String defaultOrderBy) throws InvalidDimension, ExclusiveDimensionPresent, RequiredDimensionMissing
 	{
 		assert dimensions != null;
 		assert defaultOrderBy != null;
@@ -235,12 +243,26 @@ public abstract class AbstractQuery<QueryType extends AbstractQuery> implements 
 		return getAllDimensions().contains(dimension);
 	}
 
-	public <QueryType> QueryType and(QueryDimension dimension, Object value) throws InvalidDimension
+	public <QueryType> QueryType and(QueryDimension dimension, Object value) throws InvalidDimension, ExclusiveDimensionPresent, RequiredDimensionMissing
 	{
 		assert dimension != null;
 
 		if (!isAvailableDimension(dimension)) {
 			throw new InvalidDimension(dimension);
+		}
+
+		// Make sure the exclusive dimensions are not contained
+		for (String exclusiveDimension : dimension.getExclusiveDimensions()) {
+			if (hasDimensionValue(exclusiveDimension)) {
+				throw new ExclusiveDimensionPresent(dimension.getName(), exclusiveDimension);
+			}
+		}
+
+		// Make sure the exclusive dimensions are not contained
+		for (String requiredDimension : dimension.getRequiredDimensions()) {
+			if (!hasDimensionValue(requiredDimension)) {
+				throw new RequiredDimensionMissing(dimension.getName(), requiredDimension);
+			}
 		}
 
 		if (value != null) {
