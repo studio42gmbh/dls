@@ -46,9 +46,6 @@ public class QueryDimension
 	@AttributeDL(required = true)
 	protected Class type;
 
-	@AttributeDL(required = false, defaultValue = "false")
-	protected boolean required = false;
-
 	@AttributeDL(required = false, defaultValue = "equal")
 	protected QueryDimensionMatchType matchType = QueryDimensionMatchType.equal;
 
@@ -212,15 +209,5 @@ public class QueryDimension
 	public void addRequiredDimension(String requiredDimension)
 	{
 		this.requiredDimensions.add(requiredDimension);
-	}
-
-	public boolean isRequired()
-	{
-		return required;
-	}
-
-	public void setRequired(boolean required)
-	{
-		this.required = required;
 	}
 }
