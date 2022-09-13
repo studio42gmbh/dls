@@ -27,8 +27,10 @@ package de.s42.dl.services.database;
 
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -86,6 +88,13 @@ public class ExecuteStatement<ResultType> extends AbstractStatement<ResultType>
 		assert factory != null;
 
 		return executeQueryManyEntities(factory, parameters);
+	}
+
+	public Set<ResultType> executeManyAsSet(Object... parameters) throws Exception
+	{
+		assert factory != null;
+
+		return new HashSet<>(executeQueryManyEntities(factory, parameters));
 	}
 
 	public Optional<ResultType> executeOneOrNone(Object... parameters) throws Exception
