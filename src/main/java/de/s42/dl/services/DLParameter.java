@@ -40,7 +40,7 @@ public @interface DLParameter
 {
 	public enum Validation
 	{
-		Auto, Email, UUID, Pattern
+		Auto, Email, UUID, Pattern, Boolean
 	}
 
 	public String value();
