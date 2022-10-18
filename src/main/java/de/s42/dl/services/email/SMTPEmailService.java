@@ -108,6 +108,21 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	public void exit()
 	{
 	}
+	
+	@Override
+	public void sendEmail(
+		String receiversMails,
+		String ccMails,
+		String bccMails,
+		String subject,
+		String htmlBody,
+		String plainTextBody,
+		Path... attachmentPaths
+	) throws Exception
+	{
+		sendEmail(receiversMails, ccMails, bccMails, subject, senderName, senderEmail, htmlBody, plainTextBody, attachmentPaths);
+	}
+	
 
 	@Override
 	public void sendEmail(
@@ -115,6 +130,8 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		String ccMails,
 		String bccMails,
 		String subject,
+		String senderName,
+		String senderEmail,
 		String htmlBody,
 		String plainTextBody,
 		Path... attachmentPaths
@@ -149,7 +166,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		MimeMessage message = new MimeMessage(session);
 		message.setSentDate(new Date());
 		message.setHeader("charset", getEncoding());
-		message.setFrom(new InternetAddress(getSenderEmail(), getSenderName()));
+		message.setFrom(new InternetAddress(senderEmail, senderName));
 
 		if (receiversMails != null) {
 			String[] recipients = receiversMails.split(";");
