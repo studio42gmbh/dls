@@ -26,7 +26,6 @@
 package de.s42.dl.services.content;
 
 import de.s42.dl.services.remote.StreamResult;
-import de.s42.dl.srv.*;
 import de.s42.dl.services.Service;
 
 /**
