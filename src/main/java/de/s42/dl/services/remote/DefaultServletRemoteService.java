@@ -357,7 +357,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		return (DataType) request.getParameter(key);
 	}
 
-	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, ParameterDescriptor parameter) throws ServletException, IOException
+	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, ParameterDescriptor parameter) throws Exception
 	{
 		assert request != null;
 		assert parameter != null;
@@ -447,6 +447,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	}
 
 	@Override
+	@SuppressWarnings("UseSpecificCatch")
 	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable
 	{
 		assert request != null;
@@ -540,6 +541,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	@Override
 	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Throwable ex)
 	{
+		assert ex != null;
+
 		if (ex instanceof DLServletException) {
 			log.error(((DLServletException) ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
 

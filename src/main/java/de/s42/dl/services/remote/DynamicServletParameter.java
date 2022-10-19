@@ -25,7 +25,6 @@
 //</editor-fold>
 package de.s42.dl.services.remote;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -33,8 +32,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Benjamin Schiller
  */
-public interface DynamicServletParameter
+public interface DynamicServletParameter<ReturnType>
 {
 
-	Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException;
+	ReturnType resolve(HttpServletRequest request, HttpServletResponse response, String key) throws Exception;
 }
