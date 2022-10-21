@@ -214,7 +214,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		response.setCharacterEncoding("UTF-8");
 
 		if (result != null) {
-			result = JsonWriter.toJSON(core.convertFromJavaObject(result)).toString();
+			result = JsonWriter.toJSON(core, core.convertFromJavaObject(result)).toString();
 		}
 
 		if (result != null) {
