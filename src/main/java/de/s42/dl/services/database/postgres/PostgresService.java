@@ -35,9 +35,9 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -57,7 +57,9 @@ public class PostgresService extends AbstractService implements DatabaseService
 	protected String connectionURL;
 	protected boolean autoCloseConnection = false;
 
-	protected final Map<Thread, Connection> perThreadConnections = Collections.synchronizedMap(new HashMap<>());
+	protected final Set<Connection> openConnections = Collections.synchronizedSet(new HashSet<>());
+
+	protected ThreadLocal<Connection> connections = new ThreadLocal<>();
 
 	protected void initConnection() throws Exception
 	{
@@ -110,26 +112,18 @@ public class PostgresService extends AbstractService implements DatabaseService
 	@AttributeDL(ignore = true)
 	public Connection getConnection() throws SQLException
 	{
-		Thread currentThread = Thread.currentThread();
-		Connection con = perThreadConnections.get(currentThread);
+		Connection con = connections.get();
 
 		if (con != null && !con.isClosed()) {
 			return con;
-		} else {
-			synchronized (currentThread) {
-
-				con = perThreadConnections.get(currentThread);
-
-				if (con == null || con.isClosed()) {
-
-					con = getNewConnection();
-
-					perThreadConnections.put(currentThread, con);
-				}
-
-				return con;
-			}
 		}
+
+		con = getNewConnection();
+
+		connections.set(con);
+		openConnections.add(con);
+
+		return con;
 	}
 
 	@Override
@@ -141,10 +135,13 @@ public class PostgresService extends AbstractService implements DatabaseService
 	@Override
 	public synchronized void closeAllConnections() throws SQLException
 	{
-		for (Connection con : perThreadConnections.values()) {
-			con.close();
+		for (Connection con : openConnections) {
+			if (con != null && !con.isClosed()) {
+				con.close();
+			}
 		}
-		perThreadConnections.clear();
+		openConnections.clear();
+		connections = new ThreadLocal<>();
 	}
 
 	@Override
