@@ -181,7 +181,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		// Using the Introspector has the advantage of being cached
 		BeanInfo<ResultType> info = BeanHelper.getBeanInfo((Class<ResultType>) fillTarget.getClass());
 
-		for (BeanProperty<ResultType> property : info.getWriteProperties()) {
+		for (BeanProperty<ResultType, ?> property : info.getWriteProperties()) {
 
 			String propertyName = property.getName().toLowerCase();
 			Class paramType = property.getPropertyClass();
