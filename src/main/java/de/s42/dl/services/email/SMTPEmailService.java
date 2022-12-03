@@ -26,9 +26,7 @@
 package de.s42.dl.services.email;
 
 import de.s42.base.files.FilesHelper;
-import de.s42.dl.DLAnnotation.AnnotationDL;
 import de.s42.dl.DLAttribute.AttributeDL;
-import de.s42.dl.annotations.LengthDLAnnotation;
 import de.s42.dl.services.AbstractService;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
@@ -74,11 +72,9 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	private String protocol = "smtp";
 
 	@AttributeDL(required = true)
-	@AnnotationDL(value = LengthDLAnnotation.DEFAULT_SYMBOL, parameters = {"1", "100"})
 	private String user;
 
 	@AttributeDL(required = true)
-	@AnnotationDL(value = LengthDLAnnotation.DEFAULT_SYMBOL, parameters = {"0", "100"})
 	private String password;
 
 	@AttributeDL(required = true, defaultValue = "UTF-8")
@@ -108,7 +104,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	public void exit()
 	{
 	}
-	
+
 	@Override
 	public void sendEmail(
 		String receiversMails,
@@ -122,7 +118,6 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	{
 		sendEmail(receiversMails, ccMails, bccMails, subject, senderName, senderEmail, htmlBody, plainTextBody, attachmentPaths);
 	}
-	
 
 	@Override
 	public void sendEmail(
