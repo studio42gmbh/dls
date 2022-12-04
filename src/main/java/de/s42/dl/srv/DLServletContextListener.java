@@ -73,7 +73,7 @@ public class DLServletContextListener implements ServletContextListener
 
 				if (serviceType.isAssignableFrom(child.getType())) {
 
-					Service service = child.toJavaObject(core);
+					Service service = (Service)child.toJavaObject();
 					service.init();
 				}
 			}
@@ -83,7 +83,7 @@ public class DLServletContextListener implements ServletContextListener
 
 				if (serviceType.isAssignableFrom(exported.getType())) {
 
-					Service service = exported.toJavaObject(core);
+					Service service = (Service)exported.toJavaObject();
 					services.add(service.getName(), service);
 				}
 			}

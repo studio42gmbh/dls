@@ -126,7 +126,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 				if (serviceType.isAssignableFrom(exported.getType())) {
 
-					Service service = exported.toJavaObject(core);
+					Service service = (Service)exported.toJavaObject();
 
 					// Dont expose itself
 					if (service != this) {
