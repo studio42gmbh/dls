@@ -198,7 +198,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			long bytesWritten = result.stream(out);
 			out.flush();
 			out.close();
-			log.info("Sent streamed response", StringHelper.toString(result), bytesWritten);
+			log.debug("Sent streamed response", StringHelper.toString(result), bytesWritten);
 		}
 	}
 
@@ -221,6 +221,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			try ( PrintWriter out = response.getWriter()) {
 				out.print(result);
 				out.flush();
+				log.debug("Sent json response");
 			}
 		}
 	}
@@ -544,10 +545,14 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		assert ex != null;
 
 		if (ex instanceof DLServletException) {
-			log.error(((DLServletException) ex).getErrorCode(), ex.getMessage(), request.getRequestURL());
-
-			// @todo For debug purposes verbose atm - make this configurable
-			log.error(ex);
+			// Just log dl exceptions of 5XX status codes
+			DLServletException dlex = ((DLServletException) ex);
+			if (dlex.getHttpStatus() >= 500) {
+				log.error(dlex.getErrorCode(), ex.getMessage(), request.getRequestURL());
+			}
+			else {
+				log.debug("DLException with code", dlex.getHttpStatus(), dlex.getErrorCode(), ex.getMessage());
+			}
 		} else {
 			log.error(ex, ex.getMessage(), request.getRequestURL());
 		}
@@ -583,8 +588,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					+ ", \"errorCode\":\"" + errorCode + "\""
 					+ "}");
 				out.flush();
-			} catch (IOException ex1) {
-				log.error(ex, "Error writing error response");
+			} catch (IOException ex1) {			
+				log.error(ex1, "Error writing error response");
 			}
 		}
 
