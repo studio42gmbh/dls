@@ -36,7 +36,6 @@ import de.s42.dl.DLInstance;
 import de.s42.dl.DLType;
 import de.s42.dl.exceptions.DLException;
 import de.s42.dl.io.json.JsonWriter;
-import de.s42.dl.java.DLContainer;
 import de.s42.dl.services.AbstractService;
 import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
@@ -46,6 +45,7 @@ import de.s42.dl.services.database.DatabaseService;
 import de.s42.dl.services.l10n.LocalizationService;
 import de.s42.dl.srv.DLServletException;
 import de.s42.dl.srv.ErrorCode;
+import de.s42.dl.types.DLContainer;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.BufferedReader;
@@ -126,7 +126,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 				if (serviceType.isAssignableFrom(exported.getType())) {
 
-					Service service = (Service)exported.toJavaObject();
+					Service service = (Service) exported.toJavaObject();
 
 					// Dont expose itself
 					if (service != this) {
@@ -549,8 +549,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			DLServletException dlex = ((DLServletException) ex);
 			if (dlex.getHttpStatus() >= 500) {
 				log.error(dlex.getErrorCode(), ex.getMessage(), request.getRequestURL());
-			}
-			else {
+			} else {
 				log.debug("DLException with code", dlex.getHttpStatus(), dlex.getErrorCode(), ex.getMessage());
 			}
 		} else {
@@ -588,7 +587,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					+ ", \"errorCode\":\"" + errorCode + "\""
 					+ "}");
 				out.flush();
-			} catch (IOException ex1) {			
+			} catch (IOException ex1) {
 				log.error(ex1, "Error writing error response");
 			}
 		}
