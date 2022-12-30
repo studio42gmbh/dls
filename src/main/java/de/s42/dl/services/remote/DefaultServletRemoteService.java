@@ -118,37 +118,31 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	{
 		log.info("initService");
 
-		try {
+		// Init services
+		DLType serviceType = core.getType(Service.class).orElseThrow();
+		for (DLInstance exported : core.getExported()) {
 
-			// Init services
-			DLType serviceType = core.getType(Service.class).orElseThrow();
-			for (DLInstance exported : core.getExported()) {
+			if (serviceType.isAssignableFrom(exported.getType())) {
 
-				if (serviceType.isAssignableFrom(exported.getType())) {
+				Service service = (Service) exported.toJavaObject();
 
-					Service service = (Service) exported.toJavaObject();
+				// Dont expose itself
+				if (service != this) {
 
-					// Dont expose itself
-					if (service != this) {
+					DLService dlService = service.getClass().getAnnotation(DLService.class);
 
-						DLService dlService = service.getClass().getAnnotation(DLService.class);
-
-						// Just add classes with annotation DLService
-						if (dlService != null) {
-							services.add(service.getName(), service);
-							serviceDescriptors.add(service.getName(), new ServiceDescriptor(service, localizationService));
-						}
+					// Just add classes with annotation DLService
+					if (dlService != null) {
+						services.add(service.getName(), service);
+						serviceDescriptors.add(service.getName(), new ServiceDescriptor(service, localizationService));
 					}
 				}
 			}
-
-			serviceDescriptorsArray = serviceDescriptors.values().toArray(ServiceDescriptor[]::new);
-
-			Arrays.sort(serviceDescriptorsArray);
-
-		} catch (DLException ex) {
-			throw new RuntimeException(ex);
 		}
+
+		serviceDescriptorsArray = serviceDescriptors.values().toArray(ServiceDescriptor[]::new);
+
+		Arrays.sort(serviceDescriptorsArray);
 	}
 
 	@Override
