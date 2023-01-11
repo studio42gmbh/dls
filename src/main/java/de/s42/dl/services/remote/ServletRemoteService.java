@@ -38,5 +38,5 @@ public interface ServletRemoteService extends Service
 
 	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable;
 
-	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Throwable ex);
+	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Object error);
 }

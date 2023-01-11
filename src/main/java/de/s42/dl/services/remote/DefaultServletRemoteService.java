@@ -41,6 +41,7 @@ import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
+import de.s42.dl.services.ServiceResult;
 import de.s42.dl.services.database.DatabaseService;
 import de.s42.dl.services.l10n.LocalizationService;
 import de.s42.dl.srv.DLServletException;
@@ -188,7 +189,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			+ "; filename=\"" + result.getFileName() + "\"");
 
 		// Send file to client
-		try ( OutputStream out = response.getOutputStream()) {
+		try (OutputStream out = response.getOutputStream()) {
 			long bytesWritten = result.stream(out);
 			out.flush();
 			out.close();
@@ -212,7 +213,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 
 		if (result != null) {
-			try ( PrintWriter out = response.getWriter()) {
+			try (PrintWriter out = response.getWriter()) {
 				out.print(result);
 				out.flush();
 				log.debug("Sent json response");
@@ -220,14 +221,30 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 	}
 
-	protected void sendResponse(HttpServletResponse response, Object result, int ttl) throws IOException, DLException
+	protected void sendResponse(HttpServletRequest request, HttpServletResponse response, Object result, int ttl) throws IOException, DLException
 	{
+		assert request != null;
 		assert response != null;
 		assert ttl >= 0;
 
 		// Unpack Optional results
 		if (result instanceof Optional) {
 			result = ((Optional) result).orElse(null);
+		}
+
+		// Support soft errors without exception flow
+		if (result instanceof ServiceResult) {
+
+			ServiceResult sResult = (ServiceResult) result;
+
+			// Result -> Just unwrap
+			if (sResult.isResult()) {
+				result = sResult.getResult();
+			} // Error -> send as error response
+			else {
+				sendErrorResponse(request, response, sResult.getError());
+				return;
+			}
 		}
 
 		// Send stream results
@@ -253,7 +270,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + p.getSize());
 			}
 
-			try ( InputStream in = p.getInputStream()) {
+			try (InputStream in = p.getInputStream()) {
 
 				byte[] data = new byte[(int) p.getSize()];
 				in.read(data);
@@ -316,7 +333,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 					if (p.getSubmittedFileName() != null) {
 
-						try ( InputStream in = p.getInputStream()) {
+						try (InputStream in = p.getInputStream()) {
 							byte[] data = new byte[(int) p.getSize()];
 							in.read(data);
 							File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
@@ -335,7 +352,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 						}
 					} else {
 
-						try ( InputStream in = p.getInputStream()) {
+						try (InputStream in = p.getInputStream()) {
 							byte[] data = new byte[(int) p.getSize()];
 							in.read(data);
 							requestAsPart = new String(data, "UTF-8");
@@ -504,6 +521,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		log.debug("Calling", serviceName, methodName);
 
+		log.start("DefaultServletRemoteService.call");
+
 		// If the method shall be transactioned and the database service is not already in a transaction
 		boolean transaction = method.isTransactioned() & ((databaseService != null) ? !databaseService.isInTransaction() : false);
 
@@ -519,7 +538,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					databaseService.commitTransaction();
 				}
 
-				sendResponse(response, result, method.getTtl());
+				sendResponse(request, response, result, method.getTtl());
 			} catch (InvocationTargetException ex) {
 
 				throw ex.getCause();
@@ -530,45 +549,59 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				databaseService.rollbackTransaction();
 			}
 			throw ex;
+		} finally {
+			log.stopDebug("DefaultServletRemoteService.call");
 		}
 	}
 
 	@Override
-	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Throwable ex)
+	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Object error)
 	{
-		assert ex != null;
+		assert request != null;
+		assert response != null;
+		assert error != null;
 
-		if (ex instanceof DLServletException) {
-			// Just log dl exceptions of 5XX status codes
-			DLServletException dlex = ((DLServletException) ex);
-			if (dlex.getHttpStatus() >= 500) {
-				log.error(dlex.getErrorCode(), ex.getMessage(), request.getRequestURL());
-			} else {
-				log.debug("DLException with code", dlex.getHttpStatus(), dlex.getErrorCode(), ex.getMessage());
+		String errorMessage = "";
+		
+		if (error instanceof Throwable) {
+			errorMessage = ((Throwable)error).getMessage();
+			
+			if (error instanceof DLServletException) {
+				// Just log dl exceptions of 5XX status codes
+				DLServletException dlex = ((DLServletException) error);
+				if (dlex.getHttpStatus() >= 500) {
+					log.error(dlex.getErrorCode(), dlex.getMessage(), request.getRequestURL());
+				} else {
+					log.debug("DLException with code", dlex.getHttpStatus(), dlex.getErrorCode(), errorMessage);
+				}
 			}
-		} else {
-			log.error(ex, ex.getMessage(), request.getRequestURL());
+			// Log throwables to error log anyways
+			else {
+				log.error(error, errorMessage, request.getRequestURL());
+			}
 		}
-
+		
 		// Return unhandled exception as JSON errors
 		if (!response.isCommitted()) {
-			String errorMessage = ex.getMessage();
-			String errorClass = ex.getClass().getName();
+
+			String errorClass = error.getClass().getName();
 
 			String errorCode;
-			if (ex instanceof ErrorCode) {
-				errorCode = ((ErrorCode) ex).getErrorCode();
-				response.setStatus(((ErrorCode) ex).getHttpStatus());
+			if (error instanceof ErrorCode) {
+				errorMessage = ((ErrorCode) error).getMessage();
+				errorCode = ((ErrorCode) error).getErrorCode();
+				response.setStatus(((ErrorCode) error).getHttpStatus());
 			} // Default other execeptions to be 500 and the name of the class as errorCode
 			else {
-				errorCode = ex.getClass().getSimpleName().toUpperCase();
+				errorCode = error.getClass().getSimpleName().toUpperCase();
 				response.setStatus(500);
 			}
 
+			// Send response on the wire
 			response.setHeader("Cache-Control", "private");
 			response.setContentType("application/json");
 			response.setCharacterEncoding("UTF-8");
-			try ( PrintWriter out = response.getWriter()) {
+			try (PrintWriter out = response.getWriter()) {
 
 				out.print(
 					"{\"error\":\""
@@ -581,11 +614,10 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					+ ", \"errorCode\":\"" + errorCode + "\""
 					+ "}");
 				out.flush();
-			} catch (IOException ex1) {
-				log.error(ex1, "Error writing error response");
+			} catch (IOException ex) {
+				log.error(ex, "Error writing error response");
 			}
 		}
-
 	}
 
 	public boolean isValidatePermissions()

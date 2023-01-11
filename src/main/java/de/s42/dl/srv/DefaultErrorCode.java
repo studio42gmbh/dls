@@ -2,7 +2,7 @@
 /*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2023 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,34 +25,50 @@
 //</editor-fold>
 package de.s42.dl.srv;
 
-import de.s42.dl.services.ServiceResult;
-import javax.servlet.http.HttpServletResponse;
+import de.s42.log.LogManager;
+import de.s42.log.Logger;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public interface ErrorCode
+public class DefaultErrorCode implements ErrorCode
 {
 
-	public String getMessage();
+	private final static Logger log = LogManager.getLogger(DefaultErrorCode.class.getName());
 
-	public String getErrorCode();
+	protected final String message;
+	protected final String errorCode;
+	protected final int httpStatus;
 
-	public int getHttpStatus();
-
-	public static ErrorCode create(String message, String errorCode, int httpStatus)
+	public DefaultErrorCode(String message, String errorCode, int httpStatus)
 	{
-		return new DefaultErrorCode(message, errorCode, httpStatus);
+		assert message != null;
+		assert errorCode != null;
+		assert httpStatus >= 0;
+
+		this.message = message;
+		this.errorCode = errorCode;
+		this.httpStatus = httpStatus;
 	}
 
-	public static ServiceResult serviceResultError(String message, String errorCode, int httpStatus)
+	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
+	@Override
+	public String getMessage()
 	{
-		return ServiceResult.ofError(new DefaultErrorCode(message, errorCode, httpStatus));
+		return message;
 	}
-	
-	public static ServiceResult serviceError403Forbidden(String message, String errorCode)
+
+	@Override
+	public String getErrorCode()
 	{
-		return ServiceResult.ofError(new DefaultErrorCode(message, errorCode, HttpServletResponse.SC_FORBIDDEN));
+		return errorCode;
 	}
+
+	@Override
+	public int getHttpStatus()
+	{
+		return httpStatus;
+	}
+	//</editor-fold>
 }
