@@ -46,13 +46,23 @@ public interface ErrorCode
 		return new DefaultErrorCode(message, errorCode, httpStatus);
 	}
 
-	public static ServiceResult serviceResultError(String message, String errorCode, int httpStatus)
+	public static ServiceResult serviceError(Exception ex)
+	{
+		return ServiceResult.ofError(new DefaultErrorCode(ex.getMessage(), ex.getClass().getSimpleName().toUpperCase(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
+	}
+	
+	public static ServiceResult serviceError(String message, String errorCode, int httpStatus)
 	{
 		return ServiceResult.ofError(new DefaultErrorCode(message, errorCode, httpStatus));
 	}
 	
-	public static ServiceResult serviceError403Forbidden(String message, String errorCode)
+	public static ServiceResult serviceError403Forbidden(String message)
 	{
-		return ServiceResult.ofError(new DefaultErrorCode(message, errorCode, HttpServletResponse.SC_FORBIDDEN));
+		return ServiceResult.ofError(new DefaultErrorCode(message, "FORBIDDEN", HttpServletResponse.SC_FORBIDDEN));
+	}
+	
+	public static ServiceResult serviceError404NotFound(String message)
+	{
+		return ServiceResult.ofError(new DefaultErrorCode(message, "NOT_FOUND", HttpServletResponse.SC_NOT_FOUND));
 	}
 }
