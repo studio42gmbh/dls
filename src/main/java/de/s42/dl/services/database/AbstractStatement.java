@@ -35,6 +35,7 @@ import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,10 +43,12 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.json.JSONException;
@@ -157,16 +160,25 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 						statement.setString(c, (new JSONObject((Map) parameter)).toString());
 					} else if (parameter instanceof Enum) {
 						statement.setString(c, parameter.toString());
-					} else {
-						if (parameter != null) {
-							//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
-							//statement.setString(c, parameter.toString());
-							statement.setObject(c, parameter);
-						} //unknown parameter null - set null string
-						else {
-							statement.setNull(c, Types.NULL);
-						}
+					} // Handle list and set types
+					else if (parameter instanceof List
+						|| parameter instanceof Set) {
+						Array array = statement.getConnection().createArrayOf("text", ((Collection) parameter).toArray());
+						statement.setArray(c, array);
+					} // Handle array types
+					else if (parameter != null && parameter.getClass().isArray()) {
+						String sqlType = getSqlTypeFromClass(parameter.getClass().getComponentType());
+						Array array = statement.getConnection().createArrayOf(sqlType, (Object[]) parameter);
+						statement.setArray(c, array);
+					} else if (parameter != null) {
+						//log.trace("SQL Parameter Data Type:", parameter.getClass().toString(), parameter.toString());
+						//statement.setString(c, parameter.toString());
+						statement.setObject(c, parameter);
+					} //unknown parameter null - set null string
+					else {
+						statement.setNull(c, Types.NULL);
 					}
+
 					c++;
 				} catch (SQLException ex) {
 					throw new SQLException("Error setting parameter " + c + " : " + parameter + " - " + ex.getMessage(), ex);
@@ -210,13 +222,13 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	{
 		return mapCurrentRowToEntity(result, fillTarget);
 	}
-	
+
 	@Override
 	public void executeNoResult(Object... parameters) throws Exception
 	{
 		executeNoResult(statement, parameters);
 	}
-	
+
 	@Override
 	public void executeNoResult(String statement, Object... parameters) throws Exception
 	{
@@ -269,20 +281,19 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	{
 		return executeQuerySingleEntity(getStatement(), factory, parameters);
 	}
-	
+
 	@Override
 	public <ResultType> ResultType executeQuerySingleEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
 		return executeQuerySingleOrNoEntity(statement, factory, parameters).orElseThrow();
 	}
 
-	
 	@Override
 	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
 		return executeQuerySingleOrNoEntity(getStatement(), factory, parameters);
 	}
-	
+
 	@Override
 	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
@@ -354,7 +365,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	{
 		return executeQueryManyEntities(statement, factory, parameters);
 	}
-	
+
 	@Override
 	public <ResultType> List<ResultType> executeQueryManyEntities(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
@@ -483,6 +494,64 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		}
 
 		return new JSONObject(r);
+	}
+
+	/**
+	 * See also https://docwiki.embarcadero.com/InterBase/2020/en/Java-to-SQL_Type_Conversion and
+	 * https://www.instaclustr.com/blog/postgresql-data-types-mappings-to-sql-jdbc-and-java-data-types/ and
+	 * https://stackoverflow.com/questions/50083516/jdbc-createarrayof-from-arraylist
+	 *
+	 * @param javaType
+	 *
+	 * @return
+	 */
+	protected String getSqlTypeFromClass(Class javaType)
+	{
+		if (UUID.class.equals(javaType)) {
+			return "uuid";
+		}
+
+		if (String.class.equals(javaType)) {
+			return "text";
+		}
+
+		if (int.class.equals(javaType)) {
+			return "integer";
+		}
+
+		if (Integer.class.equals(javaType)) {
+			return "integer";
+		}
+
+		if (float.class.equals(javaType)) {
+			return "real";
+		}
+
+		if (Float.class.equals(javaType)) {
+			return "real";
+		}
+
+		if (double.class.equals(javaType)) {
+			return "double";
+		}
+
+		if (Double.class.equals(javaType)) {
+			return "double";
+		}
+
+		if (short.class.equals(javaType)) {
+			return "short";
+		}
+
+		if (Short.class.equals(javaType)) {
+			return "short";
+		}
+
+		if (java.sql.Timestamp.class.equals(javaType)) {
+			return "timestamp";
+		}
+
+		return "text";
 	}
 
 	@Override

@@ -42,16 +42,17 @@ public class ExecuteStatement<ResultType> extends AbstractStatement<ResultType>
 {
 
 	private final static Logger log = LogManager.getLogger(ExecuteStatement.class.getName());
+
 	protected Supplier<ResultType> factory;
 
-	protected ExecuteStatement(DatabaseService databaseService) throws Exception
+	public ExecuteStatement(DatabaseService databaseService) throws Exception
 	{
 		super();
 
 		this.databaseService = databaseService;
 	}
 
-	protected ExecuteStatement(DatabaseService databaseService, Supplier<ResultType> factory) throws Exception
+	public ExecuteStatement(DatabaseService databaseService, Supplier<ResultType> factory) throws Exception
 	{
 		super();
 
@@ -79,6 +80,9 @@ public class ExecuteStatement<ResultType> extends AbstractStatement<ResultType>
 	public ExecuteStatement(DatabaseService databaseService, String statementResource, String name, Supplier<ResultType> factory) throws Exception
 	{
 		super(databaseService, statementResource, name);
+		
+		assert factory != null;
+		
 
 		this.factory = factory;
 	}
@@ -114,5 +118,15 @@ public class ExecuteStatement<ResultType> extends AbstractStatement<ResultType>
 	public void execute(Object... parameters) throws Exception
 	{
 		executeNoResult(parameters);
+	}
+
+	public Supplier<ResultType> getFactory()
+	{
+		return factory;
+	}
+
+	public void setFactory(Supplier<ResultType> factory)
+	{
+		this.factory = factory;
 	}
 }
