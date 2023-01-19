@@ -62,7 +62,7 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 	{
 		String stat = template.evaluate(context);
 
-		log.debug("executeMany", stat);
+		//log.debug("executeMany", stat);
 
 		return executeQueryManyEntities(stat, factory, parameters);
 	}
@@ -71,7 +71,7 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 	{
 		String stat = template.evaluate(context);
 
-		log.debug("executeOneOrNone", stat);
+		//log.debug("executeOneOrNone", stat);
 
 		return executeQuerySingleOrNoEntity(stat, factory, parameters);
 	}
@@ -80,7 +80,7 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 	{
 		String stat = template.evaluate(context);
 
-		log.debug("executeOne", stat);
+		//log.debug("executeOne", stat);
 
 		return executeQuerySingleEntity(stat, factory, parameters);
 	}
@@ -89,7 +89,7 @@ public class DynamicStatement<ResultType> extends AbstractStatement<ResultType>
 	{
 		String stat = template.evaluate(context);
 
-		log.debug("execute", stat);
+		//log.debug("execute", stat);
 
 		executeNoResult(stat, parameters);
 	}	
