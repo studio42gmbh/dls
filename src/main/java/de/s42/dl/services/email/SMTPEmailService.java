@@ -95,9 +95,22 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	@AttributeDL(required = false, defaultValue = "false")
 	private boolean auth = false;
 
+	@AttributeDL(required = false, defaultValue = "false")
+	protected boolean startTLS = false;
+
 	@Override
 	public void init()
 	{
+		log.info("protocol :", getProtocol());
+		log.info("host :", getHost());
+		log.info("port :", getPort());
+		log.info("ssl :", isSsl());
+		log.info("sslRequired :", isSslRequired());
+		log.info("auth :", isAuth());
+		log.info("startTLS :", isStartTLS());		
+		log.info("encoding :", getEncoding());
+		log.info("senderName :", getSenderName());
+		log.info("senderEmail :", getSenderEmail());
 	}
 
 	@Override
@@ -145,6 +158,12 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		properties.setProperty("mail.smtp.host", getHost());
 		properties.put("mail.smtp.auth", isAuth());
 		properties.put("mail.smtp.port", getPort());
+		properties.put("mail.smtp.starttls.enable", isStartTLS());
+
+		if (isSsl()) {
+			properties.put("mail.smtp.socketFactory.class",
+				"javax.net.ssl.SSLSocketFactory");
+		}
 
 		Session session = Session.getDefaultInstance(properties,
 			new javax.mail.Authenticator()
@@ -381,4 +400,13 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		this.auth = auth;
 	}
 
+	public boolean isStartTLS()
+	{
+		return startTLS;
+	}
+
+	public void setStartTLS(boolean startTLS)
+	{
+		this.startTLS = startTLS;
+	}
 }
