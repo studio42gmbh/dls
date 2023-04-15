@@ -30,11 +30,13 @@ import de.s42.dl.services.AbstractService;
 import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.DLService;
+import de.s42.dl.services.EntityNotFound;
 import de.s42.dl.services.content.ContentService;
 import de.s42.dl.services.remote.StreamResult;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -43,21 +45,44 @@ import java.util.Map;
 @DLService
 public class DLTContentService extends AbstractService implements ContentService
 {
+
 	@AttributeDL(required = false, defaultValue = "")
 	protected String basePath = "";
 
 	@AttributeDL(required = false)
 	protected Map<String, Object> bindings = Collections.synchronizedMap(new HashMap<>());
-	
+
+	@AttributeDL(required = false)
+	protected String filter;
+
+	@AttributeDL(ignore = true)
+	protected Pattern filterPattern;
+
+	@Override
+	protected void initService() throws Exception
+	{
+		super.initService();
+
+		// Loading filter regex
+		if (filter != null) {
+			filterPattern = Pattern.compile(filter);
+		}
+	}
+
 	@Override
 	@DLMethod
 	public StreamResult stream(
 		@DLParameter(value = "id", required = true) String id
 	) throws Exception
 	{
+		// Filter path if the filter is set -> If it does not match -> return a 404
+		if (filterPattern != null) {
+			if (!filterPattern.matcher(id).matches()) {
+				throw new EntityNotFound("Resource '" + id + "' was not found");
+			}
+		}
+
 		DLTResult result = new DLTResult(getBasePath() + "/" + id, getBindings());
-		
-		// @todo allow caching later -> store results
 
 		return result;
 	}
@@ -80,8 +105,18 @@ public class DLTContentService extends AbstractService implements ContentService
 	public void setBindings(Map<String, Object> bindings)
 	{
 		assert bindings != null;
-		
+
 		this.bindings.clear();
 		this.bindings.putAll(bindings);
+	}
+
+	public String getFilter()
+	{
+		return filter;
+	}
+
+	public void setFilter(String filter)
+	{
+		this.filter = filter;
 	}
 }
