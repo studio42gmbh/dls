@@ -30,6 +30,7 @@ import de.s42.dl.services.AbstractService;
 import de.s42.dl.services.database.DatabaseService;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -57,7 +58,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 	protected String connectionURL;
 	protected boolean autoCloseConnection = false;
 
-	protected final Set<Connection> openConnections = Collections.synchronizedSet(new HashSet<>());
+	protected final Set<WeakReference<Connection>> openConnections = Collections.synchronizedSet(new HashSet<>());
 
 	protected ThreadLocal<Connection> connections = new ThreadLocal<>();
 
@@ -121,7 +122,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		con = getNewConnection();
 
 		connections.set(con);
-		openConnections.add(con);
+		openConnections.add(new WeakReference(con));
 
 		return con;
 	}
@@ -130,12 +131,33 @@ public class PostgresService extends AbstractService implements DatabaseService
 	public void closeConnection(Connection connection) throws SQLException
 	{
 		connection.close();
+		
+		// Remove thread connection from threadlocal cache
+		if (connection == connections.get()) {
+			connections.remove();
+		}
+		
+		// Remove connection from reference set
+		WeakReference<Connection> ref = null;
+		for (WeakReference<Connection> refCon : openConnections) {
+			if (refCon.refersTo(connection)) {
+				refCon.clear();
+				ref = refCon;
+				break;
+			}
+		}
+		if (ref != null) {
+			openConnections.remove(ref);
+		}
 	}
 
 	@Override
 	public synchronized void closeAllConnections() throws SQLException
 	{
-		for (Connection con : openConnections) {
+		for (WeakReference<Connection> refCon : openConnections) {
+			
+			Connection con = refCon.get();
+			
 			if (con != null && !con.isClosed()) {
 				con.close();
 			}
@@ -156,6 +178,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		this.autoCloseConnection = autoCloseConnection;
 	}
 
+	@Override
 	public int incrementAndGetDbCalls()
 	{
 		return dbCalls.incrementAndGet();

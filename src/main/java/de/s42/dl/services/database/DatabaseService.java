@@ -54,4 +54,6 @@ public interface DatabaseService extends Service
 	public void commitTransaction() throws Exception;
 
 	public void rollbackTransaction() throws Exception;
+	
+	public int incrementAndGetDbCalls();
 }

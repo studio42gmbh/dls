@@ -232,9 +232,10 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	@Override
 	public void executeNoResult(String statement, Object... parameters) throws Exception
 	{
-		//log.trace("Called executeNoResult");
+		log.trace("Called executeNoResult");
 
-		//log.startTimer(Log.Level.TRACE, "executeNoResult.durationDbCall");
+		log.start("executeNoResult.durationDbCall");
+
 		Connection con = null;
 		PreparedStatement stat = null;
 		try {
@@ -245,14 +246,10 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			setParameters(stat, parameters);
 
 			stat.execute();
-			//getDatabaseService().incrementAndGetDbCalls();
+			getDatabaseService().incrementAndGetDbCalls();
 
-			//stat.close();
+			log.stopTrace("executeNoResult.durationDbCall");
 
-			/*if (getDatabaseService().isAutoCloseConnection()) {
-				con.close();
-			}*/
-			//log.stopTimer(Log.Level.TRACE, "executeNoResult.durationDbCall", "DB Call duration");
 		} catch (SQLException ex) {
 			throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
 		} finally {
@@ -267,7 +264,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			if (con != null) {
 				try {
 					if (getDatabaseService().isAutoCloseConnection()) {
-						con.close();
+						getDatabaseService().closeConnection(con);
 					}
 				} catch (SQLException ex) {
 					throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
@@ -297,9 +294,10 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	@Override
 	public <ResultType> Optional<ResultType> executeQuerySingleOrNoEntity(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
-		//log.trace("Called executeQuerySingleEntity");
+		log.trace("Called executeQuerySingleEntity");
 
-		//log.startTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall");
+		log.start("executeQuerySingleEntity.durationDbCall");
+
 		Connection con = null;
 		PreparedStatement stat = null;
 		try {
@@ -310,7 +308,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			setParameters(stat, parameters);
 
 			stat.execute();
-			//getDatabaseService().incrementAndGetDbCalls();
+			getDatabaseService().incrementAndGetDbCalls();
 
 			ResultSet resultSet = stat.getResultSet();
 
@@ -327,12 +325,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 				}
 			}
 
-			//stat.close();
-
-			/*if (getDatabaseService().isAutoCloseConnection()) {
-				con.close();
-			}*/
-			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
+			log.stopTrace("executeQuerySingleEntity.durationDbCall");
 			return Optional.ofNullable(entity);
 
 		} catch (SQLException ex) {
@@ -351,7 +344,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			if (con != null) {
 				try {
 					if (getDatabaseService().isAutoCloseConnection()) {
-						con.close();
+						getDatabaseService().closeConnection(con);
 					}
 				} catch (SQLException ex) {
 					throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
@@ -369,9 +362,10 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	@Override
 	public <ResultType> List<ResultType> executeQueryManyEntities(String statement, Supplier<ResultType> factory, Object... parameters) throws Exception
 	{
-		//log.trace("Called executeQueryManyEntities");
+		log.trace("executeQueryManyEntities");
 
-		//log.startTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall");
+		log.start("executeQuerySingleEntity.durationDbCall");
+		
 		Connection con = null;
 		PreparedStatement stat = null;
 		try {
@@ -382,7 +376,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			setParameters(stat, parameters);
 
 			stat.execute();
-			//getDatabaseService().incrementAndGetDbCalls();
+			getDatabaseService().incrementAndGetDbCalls();
 
 			ResultSet resultSet = stat.getResultSet();
 
@@ -399,12 +393,8 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 				}
 			}
 
-			//stat.close();
-
-			/*if (getDatabaseService().isAutoCloseConnection()) {
-				con.close();
-			}*/
-			//log.stopTimer(Log.Level.TRACE, "executeQuerySingleEntity.durationDbCall", "DB Call duration");
+			log.stopTrace("executeQuerySingleEntity.durationDbCall");
+			
 			return entities;
 
 		} catch (Exception ex) {
@@ -421,7 +411,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			if (con != null) {
 				try {
 					if (getDatabaseService().isAutoCloseConnection()) {
-						con.close();
+						getDatabaseService().closeConnection(con);
 					}
 				} catch (SQLException ex) {
 					throw new Exception("Error in query " + getName() + " - " + ex.getMessage(), ex);
