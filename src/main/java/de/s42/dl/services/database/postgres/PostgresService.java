@@ -127,16 +127,31 @@ public class PostgresService extends AbstractService implements DatabaseService
 		return con;
 	}
 
+	/**
+	 * Closes the given connection
+	 * Unless you are in a transaction - then it will do nothing
+	 *
+	 * @param connection
+	 *
+	 * @throws SQLException
+	 */
 	@Override
 	public void closeConnection(Connection connection) throws SQLException
 	{
+		assert connection != null;
+
+		// transaction is active
+		if (!connection.getAutoCommit()) {
+			return;
+		}
+
 		connection.close();
-		
+
 		// Remove thread connection from threadlocal cache
 		if (connection == connections.get()) {
 			connections.remove();
 		}
-		
+
 		// Remove connection from reference set
 		WeakReference<Connection> ref = null;
 		for (WeakReference<Connection> refCon : openConnections) {
@@ -151,13 +166,19 @@ public class PostgresService extends AbstractService implements DatabaseService
 		}
 	}
 
+	/**
+	 * Closes all connections
+	 * ATTENTION: Ignores transaction state in this method!
+	 *
+	 * @throws SQLException
+	 */
 	@Override
 	public synchronized void closeAllConnections() throws SQLException
 	{
 		for (WeakReference<Connection> refCon : openConnections) {
-			
+
 			Connection con = refCon.get();
-			
+
 			if (con != null && !con.isClosed()) {
 				con.close();
 			}
@@ -208,8 +229,27 @@ public class PostgresService extends AbstractService implements DatabaseService
 		}
 	}
 
+	/**
+	 * Commits the running transation or does nothing if not in a transaction. closes the connection after if auto close
+	 * is set to true
+	 *
+	 * @throws SQLException
+	 */
 	@Override
 	public void commitTransaction() throws SQLException
+	{
+		commitTransaction(true);
+	}
+
+	/**
+	 * Commits the running transation or does nothing if not in a transaction.closes the connection after if auto close
+	 * is set to true
+	 *
+	 * @param closeIfAutoClose if false will never close the connection
+	 *
+	 * @throws SQLException
+	 */
+	public void commitTransaction(boolean closeIfAutoClose) throws SQLException
 	{
 		Connection con = getConnection();
 		if (!con.getAutoCommit()) {
@@ -218,10 +258,34 @@ public class PostgresService extends AbstractService implements DatabaseService
 			log.warn("Commiting without the connection being autocommit=false");
 		}
 		con.setAutoCommit(true);
+
+		// Make sure to close the connection after
+		if (isAutoCloseConnection() & closeIfAutoClose) {
+			closeConnection(con);
+		}
 	}
 
+	/**
+	 * Rollbacks the running transation or does nothing if not in a transaction. closes the connection after if auto
+	 * close is set to true
+	 *
+	 * @throws SQLException
+	 */
 	@Override
 	public void rollbackTransaction() throws SQLException
+	{
+		rollbackTransaction(true);
+	}
+
+	/**
+	 * Rollbacks the running transation or does nothing if not in a transaction.closes the connection after if auto
+	 * close is set to true
+	 *
+	 * @param closeIfAutoClose if false will never close the connection
+	 *
+	 * @throws SQLException
+	 */
+	public void rollbackTransaction(boolean closeIfAutoClose) throws SQLException
 	{
 		Connection con = getConnection();
 		if (!con.getAutoCommit()) {
@@ -230,6 +294,11 @@ public class PostgresService extends AbstractService implements DatabaseService
 			log.warn("Rollbacking without the connection being autocommit=false");
 		}
 		con.setAutoCommit(true);
+
+		// Make sure to close the connection after
+		if (isAutoCloseConnection() & closeIfAutoClose) {
+			closeConnection(con);
+		}
 	}
 
 	public String getUser()
