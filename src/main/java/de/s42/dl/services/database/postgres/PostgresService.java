@@ -122,7 +122,10 @@ public class PostgresService extends AbstractService implements DatabaseService
 		con = getNewConnection();
 
 		connections.set(con);
-		openConnections.add(new WeakReference(con));
+		
+		synchronized (openConnections) {		
+			openConnections.add(new WeakReference(con));
+		}
 
 		return con;
 	}
@@ -153,16 +156,18 @@ public class PostgresService extends AbstractService implements DatabaseService
 		}
 
 		// Remove connection from reference set
-		WeakReference<Connection> ref = null;
-		for (WeakReference<Connection> refCon : openConnections) {
-			if (refCon.refersTo(connection)) {
-				refCon.clear();
-				ref = refCon;
-				break;
+		synchronized (openConnections) {		
+			WeakReference<Connection> ref = null;
+			for (WeakReference<Connection> refCon : openConnections) {
+				if (refCon.refersTo(connection)) {
+					refCon.clear();
+					ref = refCon;
+					break;
+				}
 			}
-		}
-		if (ref != null) {
-			openConnections.remove(ref);
+			if (ref != null) {
+				openConnections.remove(ref);
+			}
 		}
 	}
 
@@ -175,15 +180,17 @@ public class PostgresService extends AbstractService implements DatabaseService
 	@Override
 	public synchronized void closeAllConnections() throws SQLException
 	{
-		for (WeakReference<Connection> refCon : openConnections) {
+		synchronized (openConnections) {		
+			for (WeakReference<Connection> refCon : openConnections) {
 
-			Connection con = refCon.get();
+				Connection con = refCon.get();
 
-			if (con != null && !con.isClosed()) {
-				con.close();
+				if (con != null && !con.isClosed()) {
+					con.close();
+				}
 			}
+			openConnections.clear();
 		}
-		openConnections.clear();
 		connections = new ThreadLocal<>();
 	}
 
