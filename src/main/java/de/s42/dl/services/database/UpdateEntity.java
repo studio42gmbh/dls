@@ -71,7 +71,9 @@ public class UpdateEntity<EntityType> extends AbstractStatement<EntityType>
 			return param.getSqlValue();
 		}).collect(Collectors.joining(", "));
 
-		this.statement = "UPDATE " + tableName + " SET (" + columns + ") =\n(" + values + ") WHERE " + matchColumn + " = ?;";
+		statement = "UPDATE " + tableName + " SET (" + columns + ") =\n(" + values + ") WHERE " + matchColumn + " = ?;";
+		
+		log.debug("initStatement", name, statement);
 	}
 
 	public Optional<EntityType> execute(Object match, Object... parameters) throws Exception
