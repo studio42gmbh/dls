@@ -97,6 +97,7 @@ public class DLServletException extends ServletException implements ErrorCode
 		return errorCode;
 	}
 
+	@Override
 	public int getHttpStatus()
 	{
 		return httpStatus;
