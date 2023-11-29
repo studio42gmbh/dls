@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<name>Data Language Services</name>
-	<description>Allows to define REST services using DL</description>
+	<description>Allows to define REST services using DL. See https://github.com/studio42gmbh/dls</description>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.s42</groupId>
 	<artifactId>dls</artifactId>
@@ -9,32 +9,19 @@
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.release>17</maven.compiler.release>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>de.s42</groupId>
-			<artifactId>base42</artifactId>
-			<version>1.0.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.s42</groupId>
-			<artifactId>log42</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.s42</groupId>
 			<artifactId>dl</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-DEV</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.s42</groupId>
 			<artifactId>dlt</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-DEV</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -54,11 +41,13 @@
 			<groupId>com.sun.mail</groupId>
 			<artifactId>javax.mail</artifactId>
 			<version>1.6.2</version>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.activation</groupId>
 			<artifactId>activation</artifactId>
 			<version>1.1.1</version>
+			<scope>compile</scope>
 		</dependency>		
 	</dependencies>	
 	<distributionManagement>
@@ -71,6 +60,8 @@
 	<build>
 		<plugins>
 			<plugin>
+				<!-- https://maven.apache.org/plugins/maven-antrun-plugin/ -->
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>3.1.0</version>
 				<executions>
@@ -101,7 +92,7 @@
 				<!-- https://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.2.1</version>
+				<version>3.2.2</version>
 				<configuration>
 					<!-- https://stackoverflow.com/questions/64688896/how-to-make-testng-print-detail-message-about-the-failure -->
 					<trimStackTrace>false</trimStackTrace> 
@@ -156,7 +147,7 @@
 				<!-- https://maven.apache.org/plugins/maven-javadoc-plugin/aggregate-mojo.html -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.6.2</version>
 				<configuration>
 					<outputDirectory>${project.basedir}/docs</outputDirectory>
 					<reportOutputDirectory>${project.basedir}/docs</reportOutputDirectory>
