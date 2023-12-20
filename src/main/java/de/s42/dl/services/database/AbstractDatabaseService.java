@@ -48,19 +48,6 @@ public abstract class AbstractDatabaseService extends AbstractService
 	@AttributeDL(required = true)
 	protected DatabaseService databaseService;
 
-	@AttributeDL(required = false, defaultValue = "false")
-	protected boolean createDatabase = false;
-
-	public void createDatabase() throws Exception
-	{
-		// Create tables etc
-	}
-
-	public void dropDatabase() throws Exception
-	{
-		// Drop tables etc		
-	}
-
 	@Override
 	public synchronized void init() throws Exception
 	{
@@ -73,12 +60,6 @@ public abstract class AbstractDatabaseService extends AbstractService
 		initService();
 
 		setInited(true);
-
-		// Drop and create database if flag is set
-		if (isCreateDatabase()) {
-			dropDatabase();
-			createDatabase();
-		}
 	}
 
 	@SuppressWarnings("UseSpecificCatch")
@@ -86,7 +67,6 @@ public abstract class AbstractDatabaseService extends AbstractService
 	{
 		return transactioned(databaseService, func);
 	}
-
 
 	@SuppressWarnings("UseSpecificCatch")
 	public static <ReturnType> ReturnType transactioned(DatabaseService databaseService, Transactioned<ReturnType> func) throws Exception
@@ -114,8 +94,8 @@ public abstract class AbstractDatabaseService extends AbstractService
 			}
 			throw ex;
 		}
-	}	
-	
+	}
+
 	public DatabaseService getDatabaseService()
 	{
 		return databaseService;
@@ -124,15 +104,5 @@ public abstract class AbstractDatabaseService extends AbstractService
 	public void setDatabaseService(DatabaseService databaseService)
 	{
 		this.databaseService = databaseService;
-	}
-
-	public boolean isCreateDatabase()
-	{
-		return createDatabase;
-	}
-
-	public void setCreateDatabase(boolean createDatabase)
-	{
-		this.createDatabase = createDatabase;
 	}
 }
