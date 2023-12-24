@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.services;
 
+import de.s42.dl.services.remote.InvalidParameter;
 import de.s42.dl.services.remote.ParameterRequired;
 
 /**
@@ -46,21 +47,28 @@ public abstract class AbstractService implements Service
 	{
 		// implement in your service
 	}
-	
+
 	protected void assertRequired(String name, Object value) throws ParameterRequired
 	{
 		if (value == null) {
 			throw new ParameterRequired("Parameter " + name + " is required");
 		}
 	}
-	
+
 	protected void assertInited() throws ServiceNotInited
 	{
 		if (!isInited()) {
 			throw new ServiceNotInited(this);
 		}
 	}
-	
+
+	protected void assertTrue(boolean condition, String message) throws InvalidParameter
+	{
+		if (!condition) {
+			throw new InvalidParameter(message);
+		}
+	}
+
 	@Override
 	public String getName()
 	{
