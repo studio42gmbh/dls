@@ -62,6 +62,9 @@ public class CreateEntity<EntityType> extends AbstractStatement<EntityType>
 
 	private void initStatement(String tableName, List<DBParameter> parameters)
 	{
+		assert parameters != null;
+		assert !parameters.isEmpty();
+		
 		String columns = parameters.stream().map((param) -> {
 			return param.getSqlName();
 		}).collect(Collectors.joining(", "));
@@ -70,6 +73,8 @@ public class CreateEntity<EntityType> extends AbstractStatement<EntityType>
 		}).collect(Collectors.joining(", "));
 
 		this.statement = "INSERT INTO " + tableName + " (" + columns + ") VALUES (" + values + ");";
+
+		log.debug("initStatement", name, statement);
 	}
 
 	public EntityType execute(Object... parameters) throws Exception

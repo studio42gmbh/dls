@@ -64,14 +64,23 @@ public class UpdateEntity<EntityType> extends AbstractStatement<EntityType>
 
 	private void initStatement(String tableName, String matchColumn, List<DBParameter> parameters)
 	{
+		assert parameters != null;
+		assert !parameters.isEmpty();
+		
 		String columns = parameters.stream().map((param) -> {
 			return param.getSqlName();
 		}).collect(Collectors.joining(", "));
 		String values = parameters.stream().map((param) -> {
 			return param.getSqlValue();
 		}).collect(Collectors.joining(", "));
-
-		statement = "UPDATE " + tableName + " SET (" + columns + ") =\n(" + values + ") WHERE " + matchColumn + " = ?;";
+		
+		// Single parameter case may not have the parens
+		if (parameters.size() == 1) {
+			statement = "UPDATE " + tableName + " SET " + columns + " = " + values + " WHERE " + matchColumn + " = ?;";			
+		}
+		else {
+			statement = "UPDATE " + tableName + " SET (" + columns + ") = (" + values + ") WHERE " + matchColumn + " = ?;";
+		}
 		
 		log.debug("initStatement", name, statement);
 	}
