@@ -56,4 +56,18 @@ public interface EmailService extends Service
 		String plainTextBody,
 		Path... attachmentPaths
 	) throws Exception;	
+	
+	public void sendEmail(
+		String receiversMails,
+		String ccMails,
+		String bccMails,
+		String subject,
+		String senderName,
+		String senderMail,
+		String htmlBody,
+		String plainTextBody,
+		String replyTo,
+		Path... attachmentPaths
+	) throws Exception;	
+	
 }

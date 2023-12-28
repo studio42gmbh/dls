@@ -63,7 +63,7 @@ public class DeleteEntity<EntityType, IdType> extends AbstractStatement<EntityTy
 
 	public Optional<EntityType> execute(IdType id) throws Exception
 	{
-		log.debug("execute", getName());
+		log.trace("execute", getName());
 
 		assertRequired("id", id);
 

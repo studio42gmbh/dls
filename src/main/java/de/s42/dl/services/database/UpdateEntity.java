@@ -87,7 +87,7 @@ public class UpdateEntity<EntityType> extends AbstractStatement<EntityType>
 
 	public Optional<EntityType> execute(Object match, Object... parameters) throws Exception
 	{
-		log.debug("execute", getName());
+		log.trace("execute", getName());
 
 		Object[] params = ArrayHelper.concatenate(parameters, new Object[]{match});
 

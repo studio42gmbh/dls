@@ -79,7 +79,7 @@ public class CreateEntity<EntityType> extends AbstractStatement<EntityType>
 
 	public EntityType execute(Object... parameters) throws Exception
 	{
-		log.debug("execute", getName());
+		log.trace("execute", getName());
 
 		try {
 			return this.executeQuerySingleEntity(factory, parameters);

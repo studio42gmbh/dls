@@ -64,7 +64,7 @@ public class FindEntity<EntityType, IdType> extends AbstractStatement<EntityType
 
 	public Optional<EntityType> execute(IdType id) throws Exception
 	{
-		log.debug("execute", getName());
+		log.trace("execute", getName());
 
 		assertRequired("id", id);
 

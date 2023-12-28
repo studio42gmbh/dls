@@ -57,7 +57,7 @@ public class DeleteEntities<MatchType> extends AbstractStatement
 
 	public void execute(MatchType match) throws Exception
 	{
-		log.debug("execute", getName());
+		log.trace("execute", getName());
 
 		assertRequired("match", match);
 

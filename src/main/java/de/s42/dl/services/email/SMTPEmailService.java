@@ -39,6 +39,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.Multipart;
@@ -131,7 +132,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	{
 		sendEmail(receiversMails, ccMails, bccMails, subject, senderName, senderEmail, htmlBody, plainTextBody, attachmentPaths);
 	}
-
+	
 	@Override
 	public void sendEmail(
 		String receiversMails,
@@ -142,6 +143,23 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		String senderEmail,
 		String htmlBody,
 		String plainTextBody,
+		Path... attachmentPaths
+	) throws Exception
+	{
+		sendEmail(receiversMails, ccMails, bccMails, subject, senderName, senderEmail, htmlBody, plainTextBody, null, attachmentPaths);
+	}
+	
+	@Override
+	public void sendEmail(
+		String receiversMails,
+		String ccMails,
+		String bccMails,
+		String subject,
+		String senderName,
+		String senderEmail,
+		String htmlBody,
+		String plainTextBody,
+		String replyTo,
 		Path... attachmentPaths
 	) throws Exception
 	{
@@ -210,6 +228,11 @@ public class SMTPEmailService extends AbstractService implements EmailService
 						new InternetAddress(bccRecipients[i].trim()));
 				}
 			}
+		}
+		
+		// Optional reply to
+		if (replyTo != null) {
+			message.setReplyTo(new Address[]{new InternetAddress(replyTo)});
 		}
 
 		message.setSubject(subject, getEncoding());

@@ -99,7 +99,7 @@ public class FindEntities<EntityType, FilterType> extends AbstractStatement
 
 	public List<EntityType> execute(FilterType filter, int offset, int limitCount) throws Exception
 	{
-		log.debug("execute", getName());
+		log.trace("execute", getName());
 
 		assertRequired("filter", filter);
 
