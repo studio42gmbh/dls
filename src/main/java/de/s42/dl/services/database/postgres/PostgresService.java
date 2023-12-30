@@ -308,6 +308,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		}
 	}
 
+	// <editor-fold desc="Getters/Setters " defaultstate="collapsed">
 	public String getUser()
 	{
 		return user;
@@ -337,4 +338,5 @@ public class PostgresService extends AbstractService implements DatabaseService
 	{
 		this.connectionURL = connectionURL;
 	}
+	//</editor-fold>
 }
