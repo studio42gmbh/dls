@@ -25,11 +25,13 @@
 //</editor-fold>
 package de.s42.dl.services.database.postgres;
 
+import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Set;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -79,4 +81,19 @@ public class TomcatPostgresService extends PostgresService
 	{
 		return dataSource;
 	}
+	
+	// <editor-fold desc="Hashcode/Equals/ToString/Compare" defaultstate="collapsed">
+	@Override
+	public String toString()
+	{
+		return StringHelper.toString(this, Set.of(
+			"password", 
+			"openConnections",
+			"connections",
+			"connection",
+			"dataSource",
+			"newConnection"
+		));
+	}
+	//</editor-fold>			
 }
