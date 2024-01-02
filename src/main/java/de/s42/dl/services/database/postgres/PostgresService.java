@@ -25,7 +25,9 @@
 //</editor-fold>
 package de.s42.dl.services.database.postgres;
 
+import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
+import de.s42.dl.annotations.persistence.DontPersistDLAnnotation.dontPersist;
 import de.s42.dl.services.AbstractService;
 import de.s42.dl.services.database.DatabaseService;
 import de.s42.log.LogManager;
@@ -54,12 +56,20 @@ public class PostgresService extends AbstractService implements DatabaseService
 	protected final static AtomicInteger dbCalls = new AtomicInteger(0);
 
 	protected String user;
+	
+	@dontPersist
 	protected String password;
+	
 	protected String connectionURL;
+	
 	protected boolean autoCloseConnection = false;
 
+	@dontPersist
+	@AttributeDL(ignore = true)
 	protected final Set<WeakReference<Connection>> openConnections = Collections.synchronizedSet(new HashSet<>());
 
+	@dontPersist
+	@AttributeDL(ignore = true)
 	protected ThreadLocal<Connection> connections = new ThreadLocal<>();
 
 	protected void initConnection() throws Exception
@@ -339,4 +349,17 @@ public class PostgresService extends AbstractService implements DatabaseService
 		this.connectionURL = connectionURL;
 	}
 	//</editor-fold>
+	
+	// <editor-fold desc="Hashcode/Equals/ToString/Compare" defaultstate="collapsed">
+	@Override
+	public String toString()
+	{
+		return StringHelper.toString(this, Set.of(
+			"password", 
+			"openConnections",
+			"connections",
+			"connection"
+		));
+	}
+	//</editor-fold>		
 }
