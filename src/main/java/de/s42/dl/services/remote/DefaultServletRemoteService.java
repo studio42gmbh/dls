@@ -67,6 +67,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -209,7 +210,17 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		response.setCharacterEncoding("UTF-8");
 
 		if (result != null) {
-			result = JsonWriter.toJSON(core, core.convertFromJavaObject(result)).toString();
+
+			// Allows to directly JSON objects and DLInstances
+			if (result instanceof JSONObject json) {
+				result = json.toString();
+			} else if (result instanceof JSONArray json) {
+				result = json.toString();
+			} else if (result instanceof DLInstance instance) {
+				result = JsonWriter.toJSON(core, instance).toString();
+			} else {
+				result = JsonWriter.toJSON(core, core.convertFromJavaObject(result)).toString();
+			}
 		}
 
 		if (result != null) {
@@ -221,6 +232,116 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 	}
 
+	@Override
+	@SuppressWarnings("null")
+	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Object error)
+	{
+		assert request != null;
+		assert response != null;
+		assert error != null;
+
+		String errorMessage = "";
+
+		// Make sure to log the Throwable before trying to send it
+		if (error instanceof Throwable) {
+
+			if (error instanceof DLServletException dLServletException) {
+				// Just log dl exceptions of 5XX status codes
+				DLServletException dlex = dLServletException;
+				if (dlex.getHttpStatus() >= 500) {
+					log.error(dlex.getErrorCode(), dlex.getMessage(), request.getRequestURL());
+				} else {
+					log.debug("DLException with code", dlex.getHttpStatus(), dlex.getErrorCode(), errorMessage);
+				}
+			} // Log throwables to error log anyways
+			else {
+				log.error((Throwable)error, errorMessage, request.getRequestURL());
+			}
+		}
+
+		// Return unhandled exception as JSON errors if a response can still be send
+		if (!response.isCommitted()) {
+
+			String errorClass = error.getClass().getName();
+
+			// Allow error response to inject a status code using the ErorCode interface
+			String errorCode;
+			if (error instanceof ErrorCode errorCode1) {
+				errorMessage = errorCode1.getMessage();
+				errorCode = errorCode1.getErrorCode();
+				response.setStatus(errorCode1.getHttpStatus());
+			} // Default other execeptions to be 500 and the name of the class as errorCode
+			else {
+				errorCode = error.getClass().getSimpleName().toUpperCase();
+				response.setStatus(500);
+			}
+
+			response.setHeader("Cache-Control", "private");
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+
+			// Send Throwable response on the wire
+			if (error instanceof Throwable throwable) {
+
+				errorMessage = throwable.getMessage();
+
+				try (PrintWriter out = response.getWriter()) {
+
+					out.print(
+						"{\"error\":\""
+						+ (errorMessage != null
+							? errorMessage
+								.replaceAll("\n", "")
+								.replaceAll("\\\\", "\\\\\\\\")
+								.replaceAll("\"", "\\\\\"") : "") + "\""
+						+ ", \"errorClass\":\"" + errorClass + "\""
+						+ ", \"errorCode\":\"" + errorCode + "\""
+						+ "}");
+					out.flush();
+					return;
+				} catch (IOException ex) {
+					log.error(ex, "Error writing error response");
+				}
+			}
+
+			// Send custom error object on the line
+			if (error != null) {
+
+				// Create the custom result - similar to send json response
+				Object result;
+				// Allows to directly JSON objects and DLInstances
+				if (error instanceof JSONObject json) {
+					result = json.toString();
+				} else if (error instanceof JSONArray json) {
+					result = json.toString();
+				} else if (error instanceof DLInstance instance) {
+					try {
+						result = JsonWriter.toJSON(core, instance).toString();
+					} catch (DLException ex) {
+						result = "\"" + ex.getMessage() + "\"";
+					}
+				} else {
+					try {
+						result = JsonWriter.toJSON(core, core.convertFromJavaObject(error)).toString();
+					} catch (DLException ex) {
+						result = "\"" + ex.getMessage() + "\"";
+					}
+				}
+				
+				// Send the custom result
+				if (result != null) {
+					try (PrintWriter out = response.getWriter()) {
+						out.print(result);
+						out.flush();
+						log.debug("Sent json response");
+					} catch (IOException ex) {
+						log.error(ex);
+					}
+				}
+			}
+		}
+	}
+
 	protected void sendResponse(HttpServletRequest request, HttpServletResponse response, Object result, int ttl) throws IOException, DLException
 	{
 		assert request != null;
@@ -228,14 +349,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		assert ttl >= 0;
 
 		// Unpack Optional results
-		if (result instanceof Optional) {
-			result = ((Optional) result).orElse(null);
+		if (result instanceof Optional optional) {
+			result = optional.orElse(null);
 		}
 
 		// Support soft errors without exception flow
-		if (result instanceof ServiceResult) {
-
-			ServiceResult sResult = (ServiceResult) result;
+		if (result instanceof ServiceResult sResult) {
 
 			// Result -> Just unwrap
 			if (sResult.isResult()) {
@@ -248,8 +367,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 
 		// Send stream results
-		if (result instanceof StreamResult) {
-			sendStreamedResponse(response, (StreamResult) result);
+		if (result instanceof StreamResult streamResult) {
+			sendStreamedResponse(response, streamResult);
 			return;
 		}
 
@@ -369,6 +488,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		return (DataType) request.getParameter(key);
 	}
 
+	@SuppressWarnings("UseSpecificCatch")
 	protected Object getParameter(HttpServletRequest request, HttpServletResponse response, ParameterDescriptor parameter) throws Exception
 	{
 		assert request != null;
@@ -414,7 +534,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				}
 			}
 
-			result = ConversionHelper.convert(result, parameter.getType());
+			// Convert the parameter -> make sure to get any exception and handle it
+			try {
+				result = ConversionHelper.convert(result, parameter.getType());
+			} catch (Exception ex) {
+				throw new InvalidParameter("Error converting '" + dlParameter.value() + "' - " + ex.getMessage(), ex);
+			}
 		}
 
 		if (dlParameter.required() && result == null) {
@@ -551,72 +676,6 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			throw ex;
 		} finally {
 			log.stopDebug("DefaultServletRemoteService.call");
-		}
-	}
-
-	@Override
-	public void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, Object error)
-	{
-		assert request != null;
-		assert response != null;
-		assert error != null;
-
-		String errorMessage = "";
-		
-		if (error instanceof Throwable) {
-			errorMessage = ((Throwable)error).getMessage();
-			
-			if (error instanceof DLServletException) {
-				// Just log dl exceptions of 5XX status codes
-				DLServletException dlex = ((DLServletException) error);
-				if (dlex.getHttpStatus() >= 500) {
-					log.error(dlex.getErrorCode(), dlex.getMessage(), request.getRequestURL());
-				} else {
-					log.debug("DLException with code", dlex.getHttpStatus(), dlex.getErrorCode(), errorMessage);
-				}
-			}
-			// Log throwables to error log anyways
-			else {
-				log.error(error, errorMessage, request.getRequestURL());
-			}
-		}
-		
-		// Return unhandled exception as JSON errors
-		if (!response.isCommitted()) {
-
-			String errorClass = error.getClass().getName();
-
-			String errorCode;
-			if (error instanceof ErrorCode) {
-				errorMessage = ((ErrorCode) error).getMessage();
-				errorCode = ((ErrorCode) error).getErrorCode();
-				response.setStatus(((ErrorCode) error).getHttpStatus());
-			} // Default other execeptions to be 500 and the name of the class as errorCode
-			else {
-				errorCode = error.getClass().getSimpleName().toUpperCase();
-				response.setStatus(500);
-			}
-
-			// Send response on the wire
-			response.setHeader("Cache-Control", "private");
-			response.setContentType("application/json");
-			response.setCharacterEncoding("UTF-8");
-			try (PrintWriter out = response.getWriter()) {
-
-				out.print(
-					"{\"error\":\""
-					+ (errorMessage != null
-						? errorMessage
-							.replaceAll("\n", "")
-							.replaceAll("\\\\", "\\\\\\\\")
-							.replaceAll("\"", "\\\\\"") : "") + "\""
-					+ ", \"errorClass\":\"" + errorClass + "\""
-					+ ", \"errorCode\":\"" + errorCode + "\""
-					+ "}");
-				out.flush();
-			} catch (IOException ex) {
-				log.error(ex, "Error writing error response");
-			}
 		}
 	}
 
