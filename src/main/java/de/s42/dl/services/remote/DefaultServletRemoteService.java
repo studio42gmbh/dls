@@ -255,7 +255,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				}
 			} // Log throwables to error log anyways
 			else {
-				log.error((Throwable)error, errorMessage, request.getRequestURL());
+				log.error((Throwable) error, errorMessage, request.getRequestURL());
 			}
 		}
 
@@ -327,7 +327,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 						result = "\"" + ex.getMessage() + "\"";
 					}
 				}
-				
+
 				// Send the custom result
 				if (result != null) {
 					try (PrintWriter out = response.getWriter()) {
