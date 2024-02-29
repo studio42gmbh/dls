@@ -7,4 +7,14 @@
 			<goal>dependency:tree</goal>
 		</goals>
 	</action>
+	<action>
+		<actionName>javadoc</actionName>
+		<packagings>
+			<packaging>*</packaging>
+		</packagings>
+		<goals>
+			<goal>process-classes</goal>
+			<goal>javadoc:aggregate</goal>
+		</goals>
+	</action>		
 </actions>

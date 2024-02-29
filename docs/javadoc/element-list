@@ -1,3 +1,13 @@
 module:de.sft.dls
 de.s42.dl.services
+de.s42.dl.services.content
+de.s42.dl.services.content.dlt
+de.s42.dl.services.database
+de.s42.dl.services.database.postgres
+de.s42.dl.services.database.query
+de.s42.dl.services.email
+de.s42.dl.services.l10n
+de.s42.dl.services.permission
+de.s42.dl.services.remote
+de.s42.dl.services.remote.parameters
 de.s42.dl.srv

@@ -35,6 +35,7 @@ module de.sft.dls
 	requires de.sft.base;
 	requires activation;
 	requires java.mail;
+	requires org.json;
 
 	exports de.s42.dl.services; 
 	exports de.s42.dl.services.content; 

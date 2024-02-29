@@ -365,7 +365,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		log.trace("executeQueryManyEntities");
 
 		log.start("executeQuerySingleEntity.durationDbCall");
-		
+
 		Connection con = null;
 		PreparedStatement stat = null;
 		try {
@@ -394,7 +394,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			}
 
 			log.stopTrace("executeQuerySingleEntity.durationDbCall");
-			
+
 			return entities;
 
 		} catch (Exception ex) {

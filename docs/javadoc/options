@@ -1,0 +1,28 @@
+--class-path
+'C:/Users/Benjamin.Schiller/.m2/repository/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar'
+--module-path
+'C:/Users/Benjamin.Schiller/.m2/repository/de/s42/dlt/1.0.1/dlt-1.0.1.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/dl/1.0.1/dl-1.0.1.jar;C:/Users/Benjamin.Schiller/.m2/repository/org/antlr/antlr4-runtime/4.13.1/antlr4-runtime-4.13.1.jar;C:/home/s42/dl/development/dls/target/classes;C:/Users/Benjamin.Schiller/.m2/repository/org/json/json/20240205/json-20240205.jar;C:/Users/Benjamin.Schiller/.m2/repository/javax/activation/activation/1.1.1/activation-1.1.1.jar;C:/Users/Benjamin.Schiller/.m2/repository/com/sun/mail/javax.mail/1.6.2/javax.mail-1.6.2.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/base42/1.0.4/base42-1.0.4.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/log42/1.0.1/log42-1.0.1.jar;C:/Users/Benjamin.Schiller/.m2/repository/javax/javaee-web-api/8.0.1/javaee-web-api-8.0.1.jar'
+--patch-module
+de.sft.dls='C:/home/s42/dl/development/dls/src/main/java;C:/home/s42/dl/development/dls/target/generated-sources/annotations'
+-encoding
+'UTF-8'
+-private
+--release
+17
+--module-source-path
+'C:/home/s42/dl/development/dls/docs/javadoc/src'
+-author
+-bottom
+'Copyright &#169; 2024. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/home/s42/dl/development/dls/docs/javadoc'
+-docencoding
+'UTF-8'
+-doctitle
+'Data Language Services 1.0.1 API'
+-use
+-version
+-windowtitle
+'Data Language Services 1.0.1 API'
