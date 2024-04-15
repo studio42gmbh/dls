@@ -30,6 +30,21 @@ import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.services.AbstractService;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.Address;
+import jakarta.mail.Authenticator;
+import jakarta.mail.BodyPart;
+import jakarta.mail.Message;
+import jakarta.mail.Multipart;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,20 +52,6 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 
 /**
  *
@@ -184,7 +185,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		}
 
 		Session session = Session.getDefaultInstance(properties,
-			new javax.mail.Authenticator()
+			new Authenticator()
 		{
 			@Override
 			protected PasswordAuthentication getPasswordAuthentication()

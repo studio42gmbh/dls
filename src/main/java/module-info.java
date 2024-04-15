@@ -33,8 +33,8 @@ module de.sft.dls
 	requires de.sft.dlt;
 	requires de.sft.log;
 	requires de.sft.base;
-	requires activation;
-	requires java.mail;
+	requires jakarta.activation;
+	requires jakarta.mail;
 	requires org.json;
 
 	exports de.s42.dl.services; 
