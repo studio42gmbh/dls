@@ -42,6 +42,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -132,32 +134,32 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 
 				try {
 
-					if (parameter instanceof String) {
-						statement.setString(c, (String) parameter);
-					} else if (parameter instanceof Integer) {
-						statement.setInt(c, (Integer) parameter);
-					} else if (parameter instanceof Float) {
-						statement.setFloat(c, (Float) parameter);
-					} else if (parameter instanceof Boolean) {
-						statement.setBoolean(c, (Boolean) parameter);
-					} else if (parameter instanceof Long) {
-						statement.setLong(c, (Long) parameter);
-					} else if (parameter instanceof Double) {
-						statement.setDouble(c, (Double) parameter);
+					if (parameter instanceof String string) {
+						statement.setString(c, string);
+					} else if (parameter instanceof Integer integer) {
+						statement.setInt(c, integer);
+					} else if (parameter instanceof Float float1) {
+						statement.setFloat(c, float1);
+					} else if (parameter instanceof Boolean boolean1) {
+						statement.setBoolean(c, boolean1);
+					} else if (parameter instanceof Long long1) {
+						statement.setLong(c, long1);
+					} else if (parameter instanceof Double double1) {
+						statement.setDouble(c, double1);
 						//} else if (parameter instanceof UUID) {
 						//	statement.setObject(c, parameter);
-					} else if (parameter instanceof Class) {
-						statement.setString(c, ((Class) parameter).getName());
-					} else if (parameter instanceof Date) {
+					} else if (parameter instanceof Class class1) {
+						statement.setString(c, class1.getName());
+					} else if (parameter instanceof Date date) {
 
 						//@todo Is it possible to get rid of NULL_DATE to fix wrongmapping of dates ?
-						if (((Date) parameter).getTime() == -1) {
+						if (date.getTime() == -1) {
 							statement.setNull(c, java.sql.Types.DATE);
 						} else {
-							statement.setTimestamp(c, new java.sql.Timestamp(((Date) parameter).getTime()));
+							statement.setTimestamp(c, new java.sql.Timestamp(date.getTime()));
 						}
-					} else if (parameter instanceof Map) {
-						statement.setString(c, (new JSONObject((Map) parameter)).toString());
+					} else if (parameter instanceof Map map) {
+						statement.setString(c, (new JSONObject(map)).toString());
 					} else if (parameter instanceof Enum) {
 						statement.setString(c, parameter.toString());
 					} // Handle list and set types
@@ -204,6 +206,12 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 				Object value = result.getObject(propertyName);
 				if (value != null && "org.postgresql.util.PGobject".equals(value.getClass().getName())) {
 					value = value.getClass().getMethod("getValue").invoke(value);
+				}
+
+				// Handle implicit timestamp offset of local java system
+				if (Date.class.isAssignableFrom(paramType) && value instanceof Timestamp) {
+					LocalDateTime ldt = LocalDateTime.ofInstant(((Timestamp) value).toInstant(), ZoneId.of("Etc/UTC"));
+					value = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
 				}
 
 				property.write(fillTarget, ConversionHelper.convert(value, paramType));
@@ -450,7 +458,9 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			return null;
 		}
 
-		return new Date(r.getTime());
+		// Handle implicit timestamp offset of local java system
+		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.of("Etc/UTC"));
+		return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
 	}
 
 	protected Date getAsDate(ResultSet res, String columnName) throws SQLException
@@ -461,7 +471,9 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 			return null;
 		}
 
-		return new Date(r.getTime());
+		// Handle implicit timestamp offset of local java system
+		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.of("Etc/UTC"));
+		return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
 	}
 
 	protected JSONObject getAsJSON(ResultSet res, int columnIndex) throws SQLException, JSONException
