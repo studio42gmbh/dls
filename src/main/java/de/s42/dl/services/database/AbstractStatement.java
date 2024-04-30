@@ -210,8 +210,8 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 
 				// Handle implicit timestamp offset of local java system
 				if (Date.class.isAssignableFrom(paramType) && value instanceof Timestamp) {
-					LocalDateTime ldt = LocalDateTime.ofInstant(((Timestamp) value).toInstant(), ZoneId.of("Etc/UTC"));
-					value = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+					LocalDateTime ldt = LocalDateTime.ofInstant(((Timestamp) value).toInstant(), ZoneId.systemDefault());
+					value = Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());
 				}
 
 				property.write(fillTarget, ConversionHelper.convert(value, paramType));
@@ -459,8 +459,8 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		}
 
 		// Handle implicit timestamp offset of local java system
-		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.of("Etc/UTC"));
-		return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.systemDefault());
+		return Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());		
 	}
 
 	protected Date getAsDate(ResultSet res, String columnName) throws SQLException
@@ -472,8 +472,8 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 		}
 
 		// Handle implicit timestamp offset of local java system
-		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.of("Etc/UTC"));
-		return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.systemDefault());
+		return Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());		
 	}
 
 	protected JSONObject getAsJSON(ResultSet res, int columnIndex) throws SQLException, JSONException
