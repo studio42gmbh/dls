@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.s42</groupId>
 	<artifactId>dls</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4-DEV</version>
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -13,18 +13,21 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<!-- https://github.com/studio42gmbh/dl -->
 			<groupId>de.s42</groupId>
 			<artifactId>dl</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3-DEV</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<!-- https://github.com/studio42gmbh/dlt -->
 			<groupId>de.s42</groupId>
 			<artifactId>dlt</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3-DEV</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<!-- https://javaee.github.io/ -->
 			<groupId>javax</groupId>
 			<artifactId>javaee-web-api</artifactId>
 			<version>8.0.1</version>
@@ -64,7 +67,7 @@
 									<arg value="--abbrev=11"/>
 									<arg value="HEAD"/>
 								</exec>
-								<property name="versionFile" value="${project.basedir}/src/main/resources/de/s42/dl/srv/${project.artifactId}.version"/>	
+								<property name="versionFile" value="${project.basedir}/src/main/resources/de/s42/dls/${project.artifactId}.version"/>	
 								<property name="fullVersion" value="${project.version} #${git.revision} ${maven.build.timestamp}"/>								
 								<echo file="${versionFile}">${fullVersion}</echo>													
 								<echo>New version is ${fullVersion}</echo>
@@ -93,7 +96,7 @@
 				<!-- https://maven.apache.org/plugins/maven-compiler-plugin/ -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.12.1</version>
+				<version>3.13.0</version>
 				<configuration>
 					<showDeprecation>true</showDeprecation>
 				</configuration>

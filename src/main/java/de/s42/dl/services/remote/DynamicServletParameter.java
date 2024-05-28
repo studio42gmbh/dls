@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  * @author Benjamin Schiller
+ * @param <ReturnType>
  */
 public interface DynamicServletParameter<ReturnType>
 {

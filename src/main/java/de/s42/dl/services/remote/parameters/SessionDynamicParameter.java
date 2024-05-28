@@ -26,22 +26,22 @@
 package de.s42.dl.services.remote.parameters;
 
 import de.s42.dl.services.remote.DynamicServletParameter;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class SessionDynamicParameter implements DynamicServletParameter
+public class SessionDynamicParameter implements DynamicServletParameter<HttpSession>
 {
 
 	@Override
-	public Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	public HttpSession resolve(HttpServletRequest request, HttpServletResponse response, String key)
 	{
-		assert request != null;
-		
+		assert request != null : "request != null";
+
 		return request.getSession();
 	}
 }

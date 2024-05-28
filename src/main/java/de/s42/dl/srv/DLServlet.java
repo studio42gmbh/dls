@@ -56,7 +56,7 @@ public class DLServlet extends HttpServlet
 		assert response != null;
 		assert remoteService != null;
 
-		log.debug("processRequest");
+		//log.debug("processRequest");
 
 		try {
 			remoteService.call(request, response);

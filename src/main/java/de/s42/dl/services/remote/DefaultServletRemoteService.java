@@ -29,7 +29,7 @@ import de.s42.dl.services.permission.PermissionService;
 import de.s42.base.collections.MappedList;
 import de.s42.base.conversion.ConversionHelper;
 import de.s42.base.files.FilesHelper;
-import de.s42.base.strings.StringHelper;
+import de.s42.base.validation.ValidationHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.DLCore;
 import de.s42.dl.DLInstance;
@@ -39,6 +39,7 @@ import de.s42.dl.io.json.JsonWriter;
 import de.s42.dl.services.AbstractService;
 import de.s42.dl.services.DLMethod;
 import de.s42.dl.services.DLParameter;
+import static de.s42.dl.services.DLParameter.Validation.*;
 import de.s42.dl.services.DLService;
 import de.s42.dl.services.Service;
 import de.s42.dl.services.ServiceResult;
@@ -56,9 +57,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -194,7 +198,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			long bytesWritten = result.stream(out);
 			out.flush();
 			out.close();
-			log.debug("Sent streamed response", StringHelper.toString(result), bytesWritten);
+			//log.debug("Sent streamed response", StringHelper.toString(result), bytesWritten);
 		}
 	}
 
@@ -227,7 +231,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			try (PrintWriter out = response.getWriter()) {
 				out.print(result);
 				out.flush();
-				log.debug("Sent json response");
+				//log.debug("Sent json response");
 			}
 		}
 	}
@@ -243,7 +247,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		String errorMessage = "";
 
 		// Make sure to log the Throwable before trying to send it
-		if (error instanceof Throwable) {
+		if (error instanceof Throwable throwable) {
 
 			if (error instanceof DLServletException dLServletException) {
 				// Just log dl exceptions of 5XX status codes
@@ -255,7 +259,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				}
 			} // Log throwables to error log anyways
 			else {
-				log.error((Throwable) error, errorMessage, request.getRequestURL());
+				log.error(throwable, errorMessage, request.getRequestURL());
 			}
 		}
 
@@ -267,7 +271,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			// Allow error response to inject a status code using the ErorCode interface
 			String errorCode;
 			if (error instanceof ErrorCode errorCode1) {
-				errorMessage = errorCode1.getMessage();
+				//errorMessage = errorCode1.getMessage();
 				errorCode = errorCode1.getErrorCode();
 				response.setStatus(errorCode1.getHttpStatus());
 			} // Default other execeptions to be 500 and the name of the class as errorCode
@@ -395,7 +399,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				in.read(data);
 				File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
 				File tempFile = File.createTempFile("dl-", "", folder);
-				log.debug("Temp File: " + tempFile.getAbsolutePath());
+				//log.debug("Temp File: " + tempFile.getAbsolutePath());
 
 				FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
 
@@ -409,7 +413,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		return null;
 	}
 
-	protected <DataType> DataType getRequestParameter(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
+	protected String getRequestParameter(HttpServletRequest request, DLParameter dlParameter) throws IOException, ServletException
 	{
 		String key = dlParameter.value();
 
@@ -436,7 +440,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			}
 
 			if (requestAsJSON.has(key) && !requestAsJSON.isNull(key)) {
-				return (DataType) requestAsJSON.get(key).toString();
+				return requestAsJSON.get(key).toString();
 			}
 
 			return null;
@@ -450,7 +454,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				Part p = request.getPart(key);
 				if (p != null) {
 
-					if (p.getSubmittedFileName() != null) {
+					/*if (p.getSubmittedFileName() != null) {
 
 						try (InputStream in = p.getInputStream()) {
 							byte[] data = new byte[(int) p.getSize()];
@@ -458,7 +462,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 							File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
 							//log.debug("Temp Folder: " + folder.getAbsolutePath());
 							File tempFile = File.createTempFile("dl-", "", folder);
-							log.debug("Temp File: " + tempFile.getAbsolutePath());
+							//log.debug("Temp File: " + tempFile.getAbsolutePath());
 
 							FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
 
@@ -469,23 +473,22 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 							requestAsPart = ref;
 						}
-					} else {
-
-						try (InputStream in = p.getInputStream()) {
-							byte[] data = new byte[(int) p.getSize()];
-							in.read(data);
-							requestAsPart = new String(data, "UTF-8");
-						}
+					} else {*/
+					try (InputStream in = p.getInputStream()) {
+						byte[] data = new byte[(int) p.getSize()];
+						in.read(data);
+						requestAsPart = new String(data, "UTF-8");
 					}
+					//}
 
 					request.setAttribute("_partParameter_" + key, requestAsPart);
 				}
 			}
 
-			return (DataType) requestAsPart;
+			return (String) requestAsPart;
 		}
 
-		return (DataType) request.getParameter(key);
+		return request.getParameter(key);
 	}
 
 	@SuppressWarnings("UseSpecificCatch")
@@ -495,6 +498,10 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		assert parameter != null;
 
 		DLParameter dlParameter = parameter.getDlParameter();
+
+		if (dlParameter == null) {
+			throw new InvalidParameter("DLParameter not set for parameter " + parameter.getName());
+		}
 
 		String key = dlParameter.value();
 
@@ -522,16 +529,38 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			if (FileRef.class.isAssignableFrom(parameter.getType())) {
 				result = getRequestParameterFileRef(request, dlParameter);
 			} else {
-				result = getRequestParameter(request, dlParameter);
+				String strResult = getRequestParameter(request, dlParameter);
 
-				if (result != null && ((String) result).length() > dlParameter.maxLength()) {
-					throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + ((String) result).length());
+				if (strResult != null && strResult.length() > dlParameter.maxLength()) {
+					throw new ParameterTooLong("Parameter '" + dlParameter.value() + "' has a max length of " + dlParameter.maxLength() + " but is " + strResult.length());
 				}
 
 				// Set to default value if no value is given
-				if (result == null && !dlParameter.defaultValue().isBlank()) {
-					result = dlParameter.defaultValue();
+				if (strResult == null && !dlParameter.defaultValue().isBlank()) {
+					strResult = dlParameter.defaultValue();
 				}
+
+				if (strResult != null) {
+
+					if (dlParameter.validation().equals(UUID)) {
+
+						if (!ValidationHelper.isUUID(strResult)) {
+							throw new InvalidParameter("Parameter " + parameter.getName() + " is not a UUID ");
+						}
+					} else if (dlParameter.validation().equals(Email)) {
+
+						if (!ValidationHelper.isEmailAddress(strResult)) {
+							throw new InvalidParameter("Parameter " + parameter.getName() + " is not a Email ");
+						}
+					} else if (dlParameter.validation().equals(Pattern)) {
+
+						if (!strResult.matches(dlParameter.pattern())) {
+							throw new InvalidParameter("Parameter " + parameter.getName() + " is not of pattern " + dlParameter.pattern());
+						}
+					}
+				}
+
+				result = strResult;
 			}
 
 			// Convert the parameter -> make sure to get any exception and handle it
@@ -644,9 +673,10 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			callParams[i] = getParameter(request, response, parameter);
 		}
 
-		log.debug("Calling", serviceName, methodName);
+		String callId = "Call " + serviceName + "." + methodName;
 
-		log.start("DefaultServletRemoteService.call");
+		log.info(callId);
+		log.start(callId);
 
 		// If the method shall be transactioned and the database service is not already in a transaction
 		boolean transaction = method.isTransactioned() & ((databaseService != null) ? !databaseService.isInTransaction() : false);
@@ -675,7 +705,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			}
 			throw ex;
 		} finally {
-			log.stopDebug("DefaultServletRemoteService.call");
+			log.stopInfo(callId);
 		}
 	}
 
@@ -737,5 +767,11 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	public void setDatabaseService(DatabaseService databaseService)
 	{
 		this.databaseService = databaseService;
+	}
+
+	@Override
+	public List<DynamicServletParameter> getChildren()
+	{
+		return Collections.unmodifiableList(new ArrayList<>(dynamicParameters.values()));
 	}
 }

@@ -26,7 +26,6 @@
 package de.s42.dl.services.remote.parameters;
 
 import de.s42.dl.services.remote.DynamicServletParameter;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -34,13 +33,13 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Benjamin Schiller
  */
-public class ResponseDynamicParameter implements DynamicServletParameter
+public class ResponseDynamicParameter implements DynamicServletParameter<HttpServletResponse>
 {
 
 	@Override
-	public Object resolve(HttpServletRequest request, HttpServletResponse response, String key) throws ServletException
+	public HttpServletResponse resolve(HttpServletRequest request, HttpServletResponse response, String key)
 	{
-		assert response != null;
+		assert response != null : "response != null";
 
 		return response;
 	}
