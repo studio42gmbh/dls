@@ -29,6 +29,7 @@ import de.s42.dl.services.permission.PermissionService;
 import de.s42.base.collections.MappedList;
 import de.s42.base.conversion.ConversionHelper;
 import de.s42.base.files.FilesHelper;
+import de.s42.base.functional.Either;
 import de.s42.base.validation.ValidationHelper;
 import de.s42.dl.DLAttribute.AttributeDL;
 import de.s42.dl.DLCore;
@@ -195,7 +196,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		// Send file to client
 		try (OutputStream out = response.getOutputStream()) {
-			long bytesWritten = result.stream(out);
+			result.stream(out);
 			out.flush();
 			out.close();
 			//log.debug("Sent streamed response", StringHelper.toString(result), bytesWritten);
@@ -368,6 +369,19 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 				sendErrorResponse(request, response, sResult.getError());
 				return;
 			}
+		}
+
+		// Support Either values treating ErrorCode values as errors
+		if (result instanceof Either either) {
+
+			Object value = either.firstOrSecond();
+
+			if (value instanceof ErrorCode) {
+				sendErrorResponse(request, response, value);
+				return;
+			}
+
+			result = value;
 		}
 
 		// Send stream results
