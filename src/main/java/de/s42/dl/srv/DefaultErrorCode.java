@@ -58,17 +58,35 @@ public class DefaultErrorCode implements ErrorCode
 	{
 		return message;
 	}
-
+	
+	// Needed for DL serialization
+	public void setMessage(String message)
+	{
+		throw new UnsupportedOperationException("May not write this value");
+	}
+	
 	@Override
 	public String getErrorCode()
 	{
 		return errorCode;
 	}
-
+	
+	// Needed for DL serialization
+	public void setErrorCode(String errorCode)
+	{
+		throw new UnsupportedOperationException("May not write this value");
+	}
+	
 	@Override
 	public int getHttpStatus()
 	{
 		return httpStatus;
+	}
+	
+	// Needed for DL serialization
+	public void getHttpStatus(int httpStatus)
+	{
+		throw new UnsupportedOperationException("May not write this value");
 	}
 	//</editor-fold>
 }
