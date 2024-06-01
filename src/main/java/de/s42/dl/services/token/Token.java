@@ -1,8 +1,8 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2024 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,23 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-module de.sft.dls
-{
-	requires java.desktop;
-	requires java.naming;
-	requires java.sql;
-	requires javaee.web.api;
-	requires de.sft.dl;
-	requires de.sft.dlt;
-	requires de.sft.log;
-	requires de.sft.base;
-	requires jakarta.activation;
-	requires jakarta.mail;
-	requires org.json;
+package de.s42.dl.services.token;
 
-	exports de.s42.dl.services; 
-	exports de.s42.dl.services.content; 
-	exports de.s42.dl.services.content.dlt; 
-	exports de.s42.dl.services.database; 
-	exports de.s42.dl.services.database.query; 
-	exports de.s42.dl.services.database.postgres; 
-	exports de.s42.dl.services.email; 
-	exports de.s42.dl.services.l10n; 
-	exports de.s42.dl.services.permission; 
-	exports de.s42.dl.services.remote; 
-	exports de.s42.dl.services.remote.parameters; 
-	exports de.s42.dl.services.token; 
-	exports de.s42.dl.srv;
+import java.util.Set;
+
+/**
+ *
+ * @author Benjamin Schiller
+ */
+public interface Token
+{
+	String getToken();
+
+	long getUntil();
+
+	public Set<String> getPermissions();
+
+	boolean permits(Set<String> permissions);
+
+	boolean permits(String permission);
 }
