@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,6 +26,7 @@
 package de.s42.dl.services.remote;
 
 import de.s42.dl.services.DLMethod;
+import de.s42.dl.services.DLMethod.MethodType;
 import de.s42.dl.services.DLParameter;
 import de.s42.dl.services.l10n.LocalizationService;
 import java.lang.reflect.InvocationTargetException;
@@ -129,7 +130,7 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 	{
 		return parameters;
 	}
-	
+
 	public boolean isHasParameters()
 	{
 		return staticParameters.length > 0;
@@ -203,5 +204,33 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 	public LocalizationService getLocalizationService()
 	{
 		return localizationService;
+	}
+
+	public String getAllowedMethods()
+	{
+		StringBuilder builder = new StringBuilder();
+		boolean first = true;
+		for (MethodType m : dlMethod.methods()) {
+			if (!first) {
+				builder.append(", ");
+			}
+			builder.append(m.toString());
+			first = false;
+		}
+
+		return builder.toString();
+	}
+
+	public boolean isAllowedMethod(String method)
+	{
+		assert method != null : "method != null";
+
+		for (MethodType m : dlMethod.methods()) {
+			if (m.toString().equalsIgnoreCase(method)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

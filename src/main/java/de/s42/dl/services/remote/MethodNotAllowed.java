@@ -23,38 +23,38 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.services;
+package de.s42.dl.services.remote;
 
-import static de.s42.dl.services.DLMethod.MethodType.GET;
-import static de.s42.dl.services.DLMethod.MethodType.POST;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.s42.dl.srv.DLServletException;
 
 /**
  *
  * @author Benjamin Schiller
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface DLMethod
+public class MethodNotAllowed extends DLServletException
 {
 
-	public enum MethodType
+	public final static String DEFAULT_MESSAGE = "Method not allowed";
+	public final static String ERROR_CODE = "METHOD_NOT_ALLOWED";
+	public final static int HTTP_STATUS = 405;
+
+	public MethodNotAllowed()
 	{
-		GET, POST, PUT, DELETE, HEAD, TRACE, OPTIONS
+		super(DEFAULT_MESSAGE, ERROR_CODE, HTTP_STATUS);
 	}
 
-	public String value() default "";
+	public MethodNotAllowed(String msg)
+	{
+		super(msg, ERROR_CODE, HTTP_STATUS);
+	}
 
-	public String[] permissions() default {};
+	public MethodNotAllowed(Throwable cause)
+	{
+		super(DEFAULT_MESSAGE, cause, ERROR_CODE, HTTP_STATUS);
+	}
 
-	public boolean userLoggedIn() default false;
-
-	public boolean transactioned() default false;
-
-	public int ttl() default 0;
-
-	public MethodType[] methods() default {GET, POST};
+	public MethodNotAllowed(String msg, Throwable cause)
+	{
+		super(msg, cause, ERROR_CODE, HTTP_STATUS);
+	}
 }

@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,6 @@
 //</editor-fold>
 package de.s42.dl.services.remote;
 
-import de.s42.dl.services.permission.PermissionService;
 import de.s42.base.collections.MappedList;
 import de.s42.base.conversion.ConversionHelper;
 import de.s42.base.files.FilesHelper;
@@ -46,6 +45,7 @@ import de.s42.dl.services.Service;
 import de.s42.dl.services.ServiceResult;
 import de.s42.dl.services.database.DatabaseService;
 import de.s42.dl.services.l10n.LocalizationService;
+import de.s42.dl.services.permission.PermissionService;
 import de.s42.dl.srv.DLServletException;
 import de.s42.dl.srv.ErrorCode;
 import de.s42.dl.types.DLContainer;
@@ -630,8 +630,8 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	@SuppressWarnings("UseSpecificCatch")
 	public void call(HttpServletRequest request, HttpServletResponse response) throws Throwable
 	{
-		assert request != null;
-		assert response != null;
+		assert request != null : "request != null";
+		assert response != null : "response != null";
 
 		// @todo make service method determination more generic (patterns, subpaths, ...)
 		String pathInfo = request.getPathInfo();
@@ -673,6 +673,12 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 
 		MethodDescriptor method = optMethod.orElseThrow();
+
+		// Make sure the method is allowed by the service
+		if (!method.isAllowedMethod(request.getMethod())) {
+			response.setHeader("Allow", method.getAllowedMethods());
+			throw new MethodNotAllowed("Method " + methodName + " is not allowed - only " + method.getAllowedMethods());
+		}
 
 		validatePermissions(request, service.getDlService(), method.getDlMethod());
 

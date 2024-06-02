@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
-/* 
+/*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,9 +25,9 @@
 //</editor-fold>
 package de.s42.dl.srv;
 
-import de.s42.dl.services.remote.ServletRemoteService;
 import de.s42.base.collections.MappedList;
 import de.s42.dl.services.Service;
+import de.s42.dl.services.remote.ServletRemoteService;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.IOException;
@@ -52,12 +52,11 @@ public class DLServlet extends HttpServlet
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException
 	{
-		assert request != null;
-		assert response != null;
-		assert remoteService != null;
+		assert request != null : "request != null";
+		assert response != null : "response != null";
+		assert remoteService != null : "remoteService != null";
 
 		//log.debug("processRequest");
-
 		try {
 			remoteService.call(request, response);
 		} catch (Throwable ex) {
@@ -80,8 +79,8 @@ public class DLServlet extends HttpServlet
 
 		// Scan for the first service of type ServletRemoteService -> use as remote bridge
 		for (Service service : services.values()) {
-			if (service instanceof ServletRemoteService) {
-				remoteService = (ServletRemoteService) service;
+			if (service instanceof ServletRemoteService servletRemoteService) {
+				remoteService = servletRemoteService;
 				break;
 			}
 		}
@@ -110,6 +109,41 @@ public class DLServlet extends HttpServlet
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException
+	{
+		processRequest(request, response);
+	}
+
+	@Override
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException
+	{
+		processRequest(request, response);
+	}
+
+	@Override
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException
+	{
+		processRequest(request, response);
+	}
+
+	@Override
+	protected void doHead(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException
+	{
+		processRequest(request, response);
+	}
+
+	@Override
+	protected void doPut(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException
+	{
+		processRequest(request, response);
+	}
+
+	@Override
+	protected void doTrace(HttpServletRequest request, HttpServletResponse response)
 		throws ServletException, IOException
 	{
 		processRequest(request, response);
