@@ -58,6 +58,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -491,7 +492,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					try (InputStream in = p.getInputStream()) {
 						byte[] data = new byte[(int) p.getSize()];
 						in.read(data);
-						requestAsPart = new String(data, "UTF-8");
+						requestAsPart = new String(data, StandardCharsets.UTF_8);
 					}
 					//}
 
