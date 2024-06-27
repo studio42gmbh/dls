@@ -101,6 +101,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	@AttributeDL(required = true)
 	protected DLCore core;
 
+	@AttributeDL(required = false)
+	protected boolean shortTypeNames = false;
+
 	@AttributeDL(ignore = true)
 	protected final MappedList<String, Service> services = new MappedList<>();
 
@@ -223,9 +226,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			} else if (result instanceof JSONArray json) {
 				result = json.toString();
 			} else if (result instanceof DLInstance instance) {
-				result = JsonWriter.toJSON(core, instance).toString();
+				result = JsonWriter.toJSON(core, instance, !shortTypeNames).toString();
 			} else {
-				result = JsonWriter.toJSON(core, core.convertFromJavaObject(result)).toString();
+				result = JsonWriter.toJSON(core, core.convertFromJavaObject(result), !shortTypeNames).toString();
 			}
 		}
 
@@ -322,13 +325,13 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 					result = json.toString();
 				} else if (error instanceof DLInstance instance) {
 					try {
-						result = JsonWriter.toJSON(core, instance).toString();
+						result = JsonWriter.toJSON(core, instance, !shortTypeNames).toString();
 					} catch (DLException ex) {
 						result = "\"" + ex.getMessage() + "\"";
 					}
 				} else {
 					try {
-						result = JsonWriter.toJSON(core, core.convertFromJavaObject(error)).toString();
+						result = JsonWriter.toJSON(core, core.convertFromJavaObject(error), !shortTypeNames).toString();
 					} catch (DLException ex) {
 						result = "\"" + ex.getMessage() + "\"";
 					}
@@ -794,5 +797,15 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 	public List<DynamicServletParameter> getChildren()
 	{
 		return Collections.unmodifiableList(new ArrayList<>(dynamicParameters.values()));
+	}
+
+	public boolean isShortTypeNames()
+	{
+		return shortTypeNames;
+	}
+
+	public void setShortTypeNames(boolean shortTypeNames)
+	{
+		this.shortTypeNames = shortTypeNames;
 	}
 }
