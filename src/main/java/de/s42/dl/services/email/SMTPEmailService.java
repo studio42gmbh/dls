@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -100,6 +100,9 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	@AttributeDL(required = false, defaultValue = "false")
 	protected boolean startTLS = false;
 
+	@AttributeDL(required = false, defaultValue = "false")
+	protected boolean debug = false;
+
 	@Override
 	public void init()
 	{
@@ -109,10 +112,11 @@ public class SMTPEmailService extends AbstractService implements EmailService
 		log.info("ssl :", isSsl());
 		log.info("sslRequired :", isSslRequired());
 		log.info("auth :", isAuth());
-		log.info("startTLS :", isStartTLS());		
+		log.info("startTLS :", isStartTLS());
 		log.info("encoding :", getEncoding());
 		log.info("senderName :", getSenderName());
 		log.info("senderEmail :", getSenderEmail());
+		log.info("debug :", isDebug());
 	}
 
 	@Override
@@ -133,7 +137,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	{
 		sendEmail(receiversMails, ccMails, bccMails, subject, senderName, senderEmail, htmlBody, plainTextBody, attachmentPaths);
 	}
-	
+
 	@Override
 	public void sendEmail(
 		String receiversMails,
@@ -149,7 +153,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	{
 		sendEmail(receiversMails, ccMails, bccMails, subject, senderName, senderEmail, htmlBody, plainTextBody, null, attachmentPaths);
 	}
-	
+
 	@Override
 	public void sendEmail(
 		String receiversMails,
@@ -170,7 +174,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 
 		Properties properties = System.getProperties();
 
-		properties.put("mail.debug", true);
+		properties.put("mail.debug", isDebug() ? "true" : "false");
 		properties.setProperty("mail.transport.protocol", getProtocol());
 		properties.put("mail.smtp.ssl.enable", isSsl());
 		properties.put("mail.smtp.ssl.required", isSslRequired());
@@ -194,6 +198,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 			}
 
 		});
+		session.setDebug(isDebug());
 
 		//Session session = Session.getDefaultInstance(properties);
 		MimeMessage message = new MimeMessage(session);
@@ -230,7 +235,7 @@ public class SMTPEmailService extends AbstractService implements EmailService
 				}
 			}
 		}
-		
+
 		// Optional reply to
 		if (replyTo != null) {
 			message.setReplyTo(new Address[]{new InternetAddress(replyTo)});
@@ -432,5 +437,15 @@ public class SMTPEmailService extends AbstractService implements EmailService
 	public void setStartTLS(boolean startTLS)
 	{
 		this.startTLS = startTLS;
+	}
+
+	public boolean isDebug()
+	{
+		return debug;
+	}
+
+	public void setDebug(boolean debug)
+	{
+		this.debug = debug;
 	}
 }
