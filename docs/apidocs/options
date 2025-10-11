@@ -1,0 +1,29 @@
+--no-fonts
+--class-path
+'C:/Users/Benjamin.Schiller/.m2/repository/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar'
+--module-path
+'C:/Users/Benjamin.Schiller/.m2/repository/org/json/json/20250517/json-20250517.jar;C:/Users/Benjamin.Schiller/.m2/repository/com/sun/activation/jakarta.activation/2.0.1/jakarta.activation-2.0.1.jar;C:/home/s42/dl/development/dls/target/classes;C:/Users/Benjamin.Schiller/.m2/repository/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/log42/1.0.4-DEV/log42-1.0.4-DEV.jar;C:/Users/Benjamin.Schiller/.m2/repository/com/sun/mail/jakarta.mail/2.0.2/jakarta.mail-2.0.2.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/base42/1.0.7-DEV/base42-1.0.7-DEV.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/dlt/1.0.4-DEV/dlt-1.0.4-DEV.jar;C:/Users/Benjamin.Schiller/.m2/repository/de/s42/dl/1.0.4-DEV/dl-1.0.4-DEV.jar;C:/Users/Benjamin.Schiller/.m2/repository/javax/javaee-web-api/8.0.1/javaee-web-api-8.0.1.jar'
+--patch-module
+de.sft.dls='C:/home/s42/dl/development/dls/src/main/java;C:/home/s42/dl/development/dls/target/generated-sources/annotations'
+-encoding
+'UTF-8'
+-private
+--release
+17
+--module-source-path
+'C:/home/s42/dl/development/dls/docs/apidocs/src'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/home/s42/dl/development/dls/docs/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'Data Language Services 1.0.6-DEV API'
+-use
+-version
+-windowtitle
+'Data Language Services 1.0.6-DEV API'
