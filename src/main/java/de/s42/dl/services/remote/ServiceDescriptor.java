@@ -52,6 +52,7 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 	protected final LocalizationService localizationService;
 
 	protected final String name;
+	protected final String description;
 	protected final String className;
 
 	protected final MethodDescriptor[] methods;
@@ -67,6 +68,7 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 		dlService = service.getClass().getAnnotation(DLService.class);
 
 		name = service.getName();
+		description = dlService.description();
 		className = service.getClass().getSimpleName() + StringHelper.upperCaseFirst(name);
 
 		List<MethodDescriptor> meths = new ArrayList<>();
@@ -126,6 +128,10 @@ public class ServiceDescriptor implements Comparable<ServiceDescriptor>
 
 	public String getDescription()
 	{
+		if (description != null && !description.isBlank()) {
+			return description;
+		}
+
 		if (localizationService == null) {
 			return "";
 		}

@@ -53,6 +53,8 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 
 	protected final String name;
 
+	protected final String description;
+
 	protected final ParameterDescriptor[] parameters;
 
 	protected final ParameterDescriptor[] staticParameters;
@@ -73,6 +75,7 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 		}
 
 		name = !dlMethod.value().isBlank() ? dlMethod.value() : method.getName();
+		description = dlMethod.description();
 
 		List<ParameterDescriptor> params = new ArrayList<>();
 		List<ParameterDescriptor> staticParams = new ArrayList<>();
@@ -164,6 +167,10 @@ public class MethodDescriptor implements Comparable<MethodDescriptor>
 
 	public String getDescription()
 	{
+		if (description != null && !description.isBlank()) {
+			return description;
+		}
+
 		if (localizationService == null) {
 			return "";
 		}
