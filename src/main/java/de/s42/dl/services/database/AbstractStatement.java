@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -324,6 +324,8 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 				resultSet = stat.getGeneratedKeys();
 			}
 
+			log.start("executeQuerySingleEntity.durationDbCall:mapEntry");
+
 			ResultType entity = null;
 
 			if (resultSet != null) {
@@ -332,6 +334,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 					entity = mapResultToSingleEntity(resultSet, factory.get());
 				}
 			}
+			log.stopTrace("executeQuerySingleEntity.durationDbCall:mapEntry");
 
 			log.stopTrace("executeQuerySingleEntity.durationDbCall");
 			return Optional.ofNullable(entity);
@@ -372,7 +375,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 	{
 		log.trace("executeQueryManyEntities");
 
-		log.start("executeQuerySingleEntity.durationDbCall");
+		log.start("executeQueryManyEntities.durationDbCall");
 
 		Connection con = null;
 		PreparedStatement stat = null;
@@ -392,6 +395,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 				resultSet = stat.getGeneratedKeys();
 			}
 
+			log.start("executeQueryManyEntities.durationDbCall:mapEntries");
 			List<ResultType> entities = new ArrayList();
 
 			if (resultSet != null) {
@@ -400,8 +404,9 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 					entities.add(mapResultToSingleEntity(resultSet, factory.get()));
 				}
 			}
+			log.stopTrace("executeQueryManyEntities.durationDbCall:mapEntries");
 
-			log.stopTrace("executeQuerySingleEntity.durationDbCall");
+			log.stopTrace("executeQueryManyEntities.durationDbCall");
 
 			return entities;
 
@@ -460,7 +465,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 
 		// Handle implicit timestamp offset of local java system
 		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.systemDefault());
-		return Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());		
+		return Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());
 	}
 
 	protected Date getAsDate(ResultSet res, String columnName) throws SQLException
@@ -473,7 +478,7 @@ public abstract class AbstractStatement<ResultType> implements Statement<ResultT
 
 		// Handle implicit timestamp offset of local java system
 		LocalDateTime ldt = LocalDateTime.ofInstant(r.toInstant(), ZoneId.systemDefault());
-		return Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());		
+		return Date.from(ldt.atZone(ZoneId.of("Etc/UTC")).toInstant());
 	}
 
 	protected JSONObject getAsJSON(ResultSet res, int columnIndex) throws SQLException, JSONException
