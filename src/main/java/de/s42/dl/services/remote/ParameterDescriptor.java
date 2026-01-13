@@ -96,7 +96,7 @@ public class ParameterDescriptor
 		return name;
 	}
 
-	public int getMaxLength()
+	public long getMaxLength()
 	{
 		return dlParameter.maxLength();
 	}

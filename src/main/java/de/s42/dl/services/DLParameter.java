@@ -46,7 +46,7 @@ public @interface DLParameter
 
 	public String value();
 
-	public int maxLength() default 1024;
+	public long maxLength() default 1024L;
 
 	public String pattern() default "";
 
