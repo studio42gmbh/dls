@@ -414,7 +414,6 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 			try (InputStream in = p.getInputStream()) {
 
-				// @todo Replace with streaming storing for very large files!
 				File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
 				File tempFile = File.createTempFile("dl-", "", folder);
 
