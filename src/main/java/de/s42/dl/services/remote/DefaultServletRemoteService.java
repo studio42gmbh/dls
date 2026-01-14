@@ -84,6 +84,7 @@ import org.json.JSONObject;
 public class DefaultServletRemoteService extends AbstractService implements ServletRemoteService, DLContainer<DynamicServletParameter>
 {
 
+	@SuppressWarnings("FieldNameHidesFieldInSuperclass")
 	private final static Logger log = LogManager.getLogger(DefaultServletRemoteService.class.getName());
 
 	@AttributeDL(required = false, defaultValue = "true")
@@ -413,13 +414,11 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 			try (InputStream in = p.getInputStream()) {
 
-				byte[] data = new byte[(int) p.getSize()];
-				in.read(data);
+				// @todo Replace with streaming storing for very large files!
 				File folder = (File) request.getServletContext().getAttribute(ServletContext.TEMPDIR);
 				File tempFile = File.createTempFile("dl-", "", folder);
-				//log.debug("Temp File: " + tempFile.getAbsolutePath());
 
-				FilesHelper.writeByteArrayToFile(tempFile.getAbsolutePath(), data);
+				FilesHelper.writeInputStreamToFile(tempFile.toPath(), in);
 
 				Map<String, Object> attributes = new HashMap();
 
