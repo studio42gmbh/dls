@@ -175,8 +175,9 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 		}
 	}
 
-	protected void sendStreamedResponse(HttpServletResponse response, StreamResult result) throws IOException
+	protected void sendStreamedResponse(HttpServletRequest request, HttpServletResponse response, StreamResult result) throws IOException
 	{
+		assert request != null;
 		assert response != null;
 		assert result != null;
 
@@ -199,12 +200,51 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 			"" + (result.isInline() ? "inline" : "attachment")
 			+ "; filename=\"" + result.getFileName() + "\"");
 
+		long length = result.getLength();
+		boolean rangeSupported = result.isRangeSupported() && length >= 0;
+		ByteRange range = null;
+
+		if (rangeSupported) {
+			response.setHeader("Accept-Ranges", "bytes");
+
+			// Without validators an If-Range condition can not be evaluated, so the full representation is sent
+			if (request.getHeader("If-Range") == null) {
+				range = ByteRange.parse(request.getHeader("Range"), length);
+			}
+		}
+
+		if (range != null && !range.isSatisfiable()) {
+			response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+			response.setHeader("Content-Range", "bytes */" + length);
+			response.setContentLengthLong(0);
+			return;
+		}
+
+		if (range != null) {
+			response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+			response.setHeader("Content-Range", "bytes " + range.start + "-" + range.end + "/" + length);
+			response.setContentLengthLong(range.getLength());
+		} else if (length >= 0) {
+			response.setContentLengthLong(length);
+		}
+
 		// Send file to client
 		try (OutputStream out = response.getOutputStream()) {
-			result.stream(out);
+			if (range != null) {
+				result.stream(out, range.start, range.getLength());
+			} else {
+				result.stream(out);
+			}
 			out.flush();
 			out.close();
 			//log.debug("Sent streamed response", StringHelper.toString(result), bytesWritten);
+		} catch (IOException ex) {
+			// Clients abort streams all the time (e.g. seeking in media), which is not an error
+			if (!response.isCommitted()) {
+				throw ex;
+			}
+
+			log.debug("Streamed response aborted", ex.getMessage());
 		}
 	}
 
@@ -391,7 +431,7 @@ public class DefaultServletRemoteService extends AbstractService implements Serv
 
 		// Send stream results
 		if (result instanceof StreamResult streamResult) {
-			sendStreamedResponse(response, streamResult);
+			sendStreamedResponse(request, response, streamResult);
 			return;
 		}
 

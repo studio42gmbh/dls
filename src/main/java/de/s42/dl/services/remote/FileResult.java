@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +28,8 @@ package de.s42.dl.services.remote;
 import de.s42.base.files.FilesHelper;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -190,7 +192,55 @@ public class FileResult implements StreamResult
 	{
 		assert file != null;
 		assert out != null;
-		
+
 		return Files.copy(file, out);
+	}
+
+	@Override
+	public long getLength()
+	{
+		try {
+			return Files.size(file);
+		} catch (IOException ex) {
+			return -1;
+		}
+	}
+
+	@Override
+	public boolean isRangeSupported()
+	{
+		return true;
+	}
+
+	@Override
+	public long stream(OutputStream out, long offset, long length) throws IOException
+	{
+		assert out != null;
+		assert offset >= 0;
+		assert length >= 0;
+
+		byte[] buffer = new byte[64 * 1024];
+		ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
+		long remaining = length;
+
+		try (SeekableByteChannel channel = Files.newByteChannel(file)) {
+			channel.position(offset);
+
+			while (remaining > 0) {
+				byteBuffer.clear();
+				byteBuffer.limit((int) Math.min(buffer.length, remaining));
+
+				int read = channel.read(byteBuffer);
+
+				if (read < 0) {
+					break;
+				}
+
+				out.write(buffer, 0, read);
+				remaining -= read;
+			}
+		}
+
+		return length - remaining;
 	}
 }
