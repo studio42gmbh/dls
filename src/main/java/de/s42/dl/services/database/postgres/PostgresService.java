@@ -1,19 +1,19 @@
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
- * 
+ *
  * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -56,12 +56,12 @@ public class PostgresService extends AbstractService implements DatabaseService
 	protected final static AtomicInteger dbCalls = new AtomicInteger(0);
 
 	protected String user;
-	
+
 	@dontPersist
 	protected String password;
-	
+
 	protected String connectionURL;
-	
+
 	protected boolean autoCloseConnection = false;
 
 	@dontPersist
@@ -114,9 +114,16 @@ public class PostgresService extends AbstractService implements DatabaseService
 		Properties connectionProps = new Properties();
 		connectionProps.put("user", getUser());
 		connectionProps.put("password", getPassword());
-		//connectionProps.put("ssl", "true"); 
+		//connectionProps.put("ssl", "true");
 
 		return DriverManager.getConnection(getConnectionURL(), connectionProps);
+	}
+
+	protected boolean hasConnection() throws SQLException
+	{
+		Connection con = connections.get();
+
+		return (con != null && !con.isClosed());
 	}
 
 	@Override
@@ -132,8 +139,8 @@ public class PostgresService extends AbstractService implements DatabaseService
 		con = getNewConnection();
 
 		connections.set(con);
-		
-		synchronized (openConnections) {		
+
+		synchronized (openConnections) {
 			openConnections.add(new WeakReference(con));
 		}
 
@@ -166,7 +173,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 		}
 
 		// Remove connection from reference set
-		synchronized (openConnections) {		
+		synchronized (openConnections) {
 			WeakReference<Connection> ref = null;
 			for (WeakReference<Connection> refCon : openConnections) {
 				if (refCon.refersTo(connection)) {
@@ -190,7 +197,7 @@ public class PostgresService extends AbstractService implements DatabaseService
 	@Override
 	public synchronized void closeAllConnections() throws SQLException
 	{
-		synchronized (openConnections) {		
+		synchronized (openConnections) {
 			for (WeakReference<Connection> refCon : openConnections) {
 
 				Connection con = refCon.get();
@@ -231,6 +238,10 @@ public class PostgresService extends AbstractService implements DatabaseService
 	@Override
 	public boolean isInTransaction() throws Exception
 	{
+		if (!hasConnection()) {
+			return false;
+		}
+
 		Connection con = getConnection();
 		return !con.getAutoCommit();
 	}
@@ -349,17 +360,17 @@ public class PostgresService extends AbstractService implements DatabaseService
 		this.connectionURL = connectionURL;
 	}
 	//</editor-fold>
-	
+
 	// <editor-fold desc="Hashcode/Equals/ToString/Compare" defaultstate="collapsed">
 	@Override
 	public String toString()
 	{
 		return StringHelper.toString(this, Set.of(
-			"password", 
+			"password",
 			"openConnections",
 			"connections",
 			"connection"
 		));
 	}
-	//</editor-fold>		
+	//</editor-fold>
 }
