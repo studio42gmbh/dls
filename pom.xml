@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.s42</groupId>
 	<artifactId>dls</artifactId>
-	<version>1.0.7</version>
+	<version>1.0.8-DEV</version>
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.7.13</version>
+			<version>42.7.14</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
